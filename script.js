@@ -1,146 +1,195 @@
 class StudySpendPro {
     constructor() {
         this.currentUser = null;
-        this.expenses = [];
-        this.recurringBills = [];
-        this.unsubscribeExpenses = null;
-        this.currentPeriod = {
-            duration: 30,
-            startDate: new Date().toISOString().split('T')[0],
-            budget: 10000
-        };
-        this.currentMonth = new Date().toISOString().substring(0, 7);
-        this.archivedMonths = [];
-        this.charts = {};
-        
-        // Auto logout timer
-        this.idleTimer = null;
-        this.lastActivity = Date.now();
-        this.IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
-        this.hasShownWelcome = false;
-        this.authInitialized = false; // Track if auth is initialized
-        
+        this.authInitialized = false;
+        console.log('🚀 StudySpendPro initialized');
         this.init();
     }
 
     init() {
+        console.log('📱 Starting app initialization...');
         this.showSplashScreen();
-        this.setupEventListeners();
-        this.setupAuthStateListener(); // This is the key method
-        this.setupIdleTimer();
         
-        // Online/offline detection
-        window.addEventListener('online', () => this.updateSyncStatus('synced'));
-        window.addEventListener('offline', () => this.updateSyncStatus('offline'));
+        // Add debugging to check DOM elements
+        setTimeout(() => {
+            console.log('🔍 Checking DOM elements...');
+            console.log('Splash screen:', document.getElementById('splash-screen'));
+            console.log('Auth screen:', document.getElementById('auth-screen'));
+            console.log('Main app:', document.getElementById('main-app'));
+            
+            this.setupEventListeners();
+            this.waitForFirebaseAndSetupAuth();
+        }, 100);
     }
 
     showSplashScreen() {
+        console.log('✨ Showing splash screen');
+        // Splash screen should already be visible by default
+        
+        // Force transition after 3 seconds regardless of Firebase
         setTimeout(() => {
+            console.log('⏰ 3 seconds passed, forcing transition...');
             this.transitionToAuth();
         }, 3000);
     }
 
     transitionToAuth() {
+        console.log('🔄 Transitioning from splash to auth...');
+        
         const splash = document.getElementById('splash-screen');
+        const authScreen = document.getElementById('auth-screen');
+        
+        if (!splash) {
+            console.error('❌ Splash screen element not found!');
+            return;
+        }
+        
+        if (!authScreen) {
+            console.error('❌ Auth screen element not found!');
+            return;
+        }
+        
+        // Hide splash screen
         splash.style.animation = 'fadeOut 0.8s ease-out forwards';
         
         setTimeout(() => {
             splash.classList.add('hidden');
-            // DON'T show auth screen here - let setupAuthStateListener handle it
+            authScreen.classList.remove('hidden');
+            console.log('✅ Transitioned to auth screen');
         }, 800);
     }
 
-    // 🔧 FIXED AUTH STATE LISTENER - This is the key fix
-    setupAuthStateListener() {
-        console.log('Setting up Firebase auth listener...');
+    waitForFirebaseAndSetupAuth() {
+        console.log('🔥 Checking for Firebase...');
         
-        if (!window.firebase || !window.firebase.auth) {
-            console.log('Firebase not ready, retrying in 1 second...');
-            setTimeout(() => this.setupAuthStateListener(), 1000);
+        // Check if Firebase is available
+        if (typeof window.firebase === 'undefined') {
+            console.log('⏳ Firebase not ready yet, retrying in 1 second...');
+            setTimeout(() => this.waitForFirebaseAndSetupAuth(), 1000);
             return;
         }
         
-        // Set persistence ONCE
-        window.firebase.auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL)
-            .then(() => {
-                console.log('✅ Auth persistence set to LOCAL');
-                
-                // Set up the auth state listener - THIS IS THE ONLY PLACE WE CHECK AUTH STATE
-                window.firebase.onAuthStateChanged(window.firebase.auth, async (user) => {
-                    console.log('🔄 Auth state changed:', user ? `User: ${user.email}` : 'No user');
-                    
-                    // Mark auth as initialized after first callback
-                    if (!this.authInitialized) {
-                        this.authInitialized = true;
-                        console.log('✅ Auth initialized');
-                    }
-                    
-                    if (user) {
-                        // User is signed in
-                        this.currentUser = user;
-                        console.log('👤 User logged in:', user.email);
-                        
-                        try {
-                            await this.setupUserProfile();
-                            this.showMainApp();
-                            this.resetIdleTimer();
-                            
-                            // Show welcome message only once per session
-                            if (!this.hasShownWelcome) {
-                                this.showNotification(`Welcome back, ${user.displayName || user.email}!`, 'success');
-                                this.hasShownWelcome = true;
-                            }
-                        } catch (error) {
-                            console.error('Error setting up user profile:', error);
-                            this.showNotification('Error loading user data', 'error');
-                        }
-                    } else {
-                        // User is signed out
-                        this.currentUser = null;
-                        console.log('🚪 User signed out');
-                        
-                        this.clearIdleTimer();
-                        this.hasShownWelcome = false;
-                        
-                        // Only show auth screen if auth is initialized (not during initial load)
-                        if (this.authInitialized) {
-                            this.showAuthScreen();
-                        }
-                    }
-                });
-            })
-            .catch((error) => {
-                console.error('❌ Error setting auth persistence:', error);
-                this.showNotification('Error initializing authentication', 'error');
-            });
+        console.log('✅ Firebase detected, setting up auth...');
+        this.setupAuthListener();
     }
 
-    showAuthScreen() {
-        console.log('📱 Showing auth screen');
-        document.getElementById('splash-screen').classList.add('hidden');
-        document.getElementById('main-app').classList.add('hidden');
-        document.getElementById('auth-screen').classList.remove('hidden');
+    setupAuthListener() {
+        console.log('👂 Setting up auth listener...');
+        
+        try {
+            // Set persistence
+            window.firebase.auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL)
+                .then(() => {
+                    console.log('✅ Auth persistence set');
+                    
+                    // Set up auth state listener
+                    window.firebase.onAuthStateChanged(window.firebase.auth, (user) => {
+                        console.log('🔄 Auth state changed:', user ? `User: ${user.email}` : 'No user');
+                        
+                        this.authInitialized = true;
+                        
+                        if (user) {
+                            this.currentUser = user;
+                            this.showMainApp();
+                            this.showNotification(`Welcome back, ${user.displayName || user.email}!`, 'success');
+                        } else {
+                            this.currentUser = null;
+                            // Auth screen should already be showing
+                            console.log('👤 No user logged in');
+                        }
+                    });
+                })
+                .catch((error) => {
+                    console.error('❌ Error setting auth persistence:', error);
+                    this.showNotification('Error initializing authentication', 'error');
+                });
+                
+        } catch (error) {
+            console.error('❌ Error setting up auth listener:', error);
+            this.showNotification('Failed to initialize authentication', 'error');
+        }
     }
 
     showMainApp() {
-        console.log('🏠 Showing main app');
-        document.getElementById('splash-screen').classList.add('hidden');
-        document.getElementById('auth-screen').classList.add('hidden');
-        document.getElementById('main-app').classList.remove('hidden');
+        console.log('🏠 Showing main app...');
         
-        this.loadUserData();
-        this.updateDashboard();
-        this.updateCurrentMonthDisplay();
+        const splash = document.getElementById('splash-screen');
+        const authScreen = document.getElementById('auth-screen');
+        const mainApp = document.getElementById('main-app');
+        
+        if (splash) splash.classList.add('hidden');
+        if (authScreen) authScreen.classList.add('hidden');
+        if (mainApp) mainApp.classList.remove('hidden');
+        
+        console.log('✅ Main app displayed');
     }
 
-    // 🔧 FIXED LOGIN HANDLING with proper error management
+    setupEventListeners() {
+        console.log('🎧 Setting up event listeners...');
+        
+        // Auth tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                this.switchAuthTab(tab);
+            });
+        });
+
+        // Login form
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log('📝 Login form submitted');
+                this.handleLogin();
+            });
+        }
+
+        // Register form
+        const registerForm = document.getElementById('register-form');
+        if (registerForm) {
+            registerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log('📝 Register form submitted');
+                this.handleRegister();
+            });
+        }
+
+        // Google login
+        const googleBtn = document.getElementById('google-login');
+        if (googleBtn) {
+            googleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('🔍 Google login clicked');
+                this.handleGoogleLogin();
+            });
+        }
+
+        console.log('✅ Event listeners set up');
+    }
+
+    switchAuthTab(tab) {
+        console.log('📑 Switching to tab:', tab);
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+        
+        const tabBtn = document.querySelector(`[data-tab="${tab}"]`);
+        const form = document.getElementById(`${tab}-form`);
+        
+        if (tabBtn) tabBtn.classList.add('active');
+        if (form) form.classList.add('active');
+    }
+
     async handleLogin() {
+        console.log('🔐 Handling login...');
+        
         const emailInput = document.getElementById('login-email');
         const passwordInput = document.getElementById('login-password');
-        const btn = document.getElementById('login-btn') || document.querySelector('#login-form .auth-btn');
+        const btn = document.querySelector('#login-form .auth-btn');
         
         if (!emailInput || !passwordInput) {
-            console.error('❌ Login form inputs not found');
+            console.error('❌ Login inputs not found');
             this.showNotification('Login form not found', 'error');
             return;
         }
@@ -153,49 +202,32 @@ class StudySpendPro {
             return;
         }
         
-        console.log('🔐 Attempting login for:', email);
-        
         try {
-            // Set loading state
             this.setButtonLoading(btn, true);
+            console.log('🔑 Attempting login for:', email);
             
-            // Attempt sign in
-            const userCredential = await window.firebase.signInWithEmailAndPassword(
-                window.firebase.auth, 
-                email, 
-                password
-            );
-            
-            console.log('✅ Login successful:', userCredential.user.uid);
-            
-            // Clear form
-            emailInput.value = '';
-            passwordInput.value = '';
-            
-            // Reset labels
-            this.fixInputLabels();
-            
-            // Success message will be shown by onAuthStateChanged
+            await window.firebase.signInWithEmailAndPassword(window.firebase.auth, email, password);
+            console.log('✅ Login successful');
             
         } catch (error) {
-            console.error('❌ Login error:', error.code, error.message);
+            console.error('❌ Login error:', error);
             this.showNotification(this.getFirebaseErrorMessage(error), 'error');
         } finally {
-            // Always clear loading state
             this.setButtonLoading(btn, false);
         }
     }
 
-    // 🔧 FIXED REGISTRATION HANDLING
     async handleRegister() {
+        console.log('📝 Handling registration...');
+        
         const nameInput = document.getElementById('register-name');
         const emailInput = document.getElementById('register-email');
         const passwordInput = document.getElementById('register-password');
         const confirmInput = document.getElementById('register-confirm');
-        const btn = document.getElementById('register-btn') || document.querySelector('#register-form .auth-btn');
+        const btn = document.querySelector('#register-form .auth-btn');
         
         if (!nameInput || !emailInput || !passwordInput || !confirmInput) {
-            console.error('❌ Registration form inputs not found');
+            console.error('❌ Register inputs not found');
             this.showNotification('Registration form not found', 'error');
             return;
         }
@@ -220,311 +252,162 @@ class StudySpendPro {
             return;
         }
         
-        console.log('📝 Attempting registration for:', email);
-        
         try {
-            // Set loading state
             this.setButtonLoading(btn, true);
+            console.log('📋 Attempting registration for:', email);
             
-            // Create account
-            const userCredential = await window.firebase.createUserWithEmailAndPassword(
-                window.firebase.auth, 
-                email, 
-                password
-            );
+            const userCredential = await window.firebase.createUserWithEmailAndPassword(window.firebase.auth, email, password);
             
-            // Update user profile with display name
             await window.firebase.updateProfile(userCredential.user, {
                 displayName: name
             });
             
-            console.log('✅ Registration successful:', userCredential.user.uid);
-            
-            // Clear form
-            nameInput.value = '';
-            emailInput.value = '';
-            passwordInput.value = '';
-            confirmInput.value = '';
-            
-            // Reset labels
-            this.fixInputLabels();
-            
+            console.log('✅ Registration successful');
             this.showNotification('Account created successfully!', 'success');
             
         } catch (error) {
-            console.error('❌ Registration error:', error.code, error.message);
+            console.error('❌ Registration error:', error);
             this.showNotification(this.getFirebaseErrorMessage(error), 'error');
         } finally {
-            // Always clear loading state
             this.setButtonLoading(btn, false);
         }
     }
 
-    // 🔧 FIXED GOOGLE LOGIN HANDLING
     async handleGoogleLogin() {
+        console.log('🔍 Handling Google login...');
+        
         const btn = document.getElementById('google-login');
         
-        console.log('🔍 Attempting Google login');
-        
         try {
-            // Set loading state
             this.setButtonLoading(btn, true);
             
             const provider = new window.firebase.GoogleAuthProvider();
-            provider.addScope('email');
-            provider.addScope('profile');
+            await window.firebase.signInWithPopup(window.firebase.auth, provider);
             
-            // Clear any existing popups
-            provider.setCustomParameters({
-                'prompt': 'select_account'
-            });
-            
-            const result = await window.firebase.signInWithPopup(window.firebase.auth, provider);
-            console.log('✅ Google login successful:', result.user.uid);
-            
-            // Success message will be shown by onAuthStateChanged
+            console.log('✅ Google login successful');
             
         } catch (error) {
-            console.error('❌ Google login error:', error.code, error.message);
-            
-            // Don't show error for user-cancelled actions
-            if (error.code !== 'auth/popup-closed-by-user' && 
-                error.code !== 'auth/cancelled-popup-request') {
+            console.error('❌ Google login error:', error);
+            if (error.code !== 'auth/popup-closed-by-user') {
                 this.showNotification(this.getFirebaseErrorMessage(error), 'error');
             }
         } finally {
-            // Always clear loading state
             this.setButtonLoading(btn, false);
         }
     }
 
-    // 🔧 ENHANCED BUTTON LOADING STATE MANAGEMENT
     setButtonLoading(button, loading) {
-        if (!button) {
-            console.warn('⚠️ Button not found for loading state');
-            return;
-        }
+        if (!button) return;
         
         if (loading) {
-            console.log('⏳ Setting button loading state');
-            button.classList.add('loading');
             button.disabled = true;
-            
-            // Store original content
-            if (!button.dataset.originalContent) {
-                button.dataset.originalContent = button.innerHTML;
-            }
-            
-            // Set loading content
+            button.style.opacity = '0.7';
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-            button.style.opacity = '0.8';
-            button.style.pointerEvents = 'none';
         } else {
-            console.log('✅ Clearing button loading state');
-            button.classList.remove('loading');
             button.disabled = false;
             button.style.opacity = '1';
-            button.style.pointerEvents = 'auto';
-            
-            // Restore original content
-            if (button.dataset.originalContent) {
-                button.innerHTML = button.dataset.originalContent;
-            }
+            button.innerHTML = button.dataset.originalText || button.innerHTML;
         }
     }
 
-    // 🔧 ENHANCED ERROR MESSAGES
     getFirebaseErrorMessage(error) {
-        console.log('🔍 Firebase error code:', error.code);
-        
         const errorMessages = {
-            'auth/user-not-found': 'No account found with this email address.',
-            'auth/wrong-password': 'Incorrect password. Please try again.',
-            'auth/email-already-in-use': 'An account with this email already exists.',
-            'auth/weak-password': 'Password should be at least 6 characters long.',
-            'auth/invalid-email': 'Please enter a valid email address.',
-            'auth/user-disabled': 'This account has been disabled.',
-            'auth/invalid-credential': 'Invalid email or password.',
-            'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
-            'auth/network-request-failed': 'Network error. Please check your internet connection.',
-            'auth/popup-closed-by-user': 'Sign-in cancelled.',
-            'auth/cancelled-popup-request': 'Sign-in cancelled.',
-            'auth/popup-blocked': 'Popup blocked. Please allow popups for this site.',
-            'auth/internal-error': 'Internal error. Please try again.',
-            'auth/invalid-api-key': 'Invalid API key configuration.',
-            'auth/app-deleted': 'Firebase app has been deleted.'
+            'auth/user-not-found': 'No account found with this email.',
+            'auth/wrong-password': 'Incorrect password.',
+            'auth/email-already-in-use': 'Email already registered.',
+            'auth/weak-password': 'Password too weak.',
+            'auth/invalid-email': 'Invalid email address.',
+            'auth/network-request-failed': 'Network error. Check connection.',
+            'auth/popup-blocked': 'Popup blocked. Allow popups for this site.'
         };
         
-        return errorMessages[error.code] || error.message || 'An unexpected error occurred. Please try again.';
+        return errorMessages[error.code] || error.message || 'An error occurred. Please try again.';
     }
 
-    // 🔧 PROPER LOGOUT HANDLING
-    async logout() {
-        console.log('🚪 Logging out user');
-        
-        try {
-            // Clean up subscriptions
-            if (this.unsubscribeExpenses) {
-                this.unsubscribeExpenses();
-                this.unsubscribeExpenses = null;
-            }
-            
-            // Clear idle timer
-            this.clearIdleTimer();
-            
-            // Clear local data
-            this.expenses = [];
-            this.recurringBills = [];
-            this.currentUser = null;
-            
-            // Clear charts
-            Object.values(this.charts).forEach(chart => {
-                if (chart && typeof chart.destroy === 'function') {
-                    chart.destroy();
-                }
-            });
-            this.charts = {};
-            
-            // Sign out from Firebase
-            await window.firebase.signOut(window.firebase.auth);
-            
-            console.log('✅ Logout successful');
-            this.showNotification('Signed out successfully!', 'success');
-            
-        } catch (error) {
-            console.error('❌ Logout error:', error);
-            this.showNotification('Error signing out', 'error');
-        }
-    }
-
-    // AUTO LOGOUT FUNCTIONALITY
-    setupIdleTimer() {
-        const resetTimer = () => {
-            this.lastActivity = Date.now();
-            this.resetIdleTimer();
-        };
-
-        // Listen for user activity
-        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
-            document.addEventListener(event, resetTimer, true);
-        });
-
-        this.resetIdleTimer();
-    }
-
-    resetIdleTimer() {
-        if (!this.currentUser) return;
-
-        this.clearIdleTimer();
-        
-        this.idleTimer = setTimeout(() => {
-            this.handleIdleTimeout();
-        }, this.IDLE_TIMEOUT);
-    }
-
-    clearIdleTimer() {
-        if (this.idleTimer) {
-            clearTimeout(this.idleTimer);
-            this.idleTimer = null;
-        }
-    }
-
-    async handleIdleTimeout() {
-        if (this.currentUser) {
-            console.log('⏰ User idle timeout - logging out');
-            this.showNotification('You have been automatically logged out due to inactivity', 'warning');
-            await this.logout();
-        }
-    }
-
-    // ... (rest of your existing methods remain the same)
-    
     showNotification(message, type = 'info') {
-        console.log(`📢 Notification (${type}):`, message);
+        console.log(`📢 ${type.toUpperCase()}: ${message}`);
         
-        const container = document.getElementById('notifications');
-        if (!container) return;
-        
+        // Simple notification - you can enhance this
         const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'error' ? '#ff6b6b' : type === 'success' ? '#51cf66' : '#339af0'};
+            color: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        `;
         notification.textContent = message;
         
-        container.appendChild(notification);
-        
-        setTimeout(() => notification.classList.add('show'), 100);
+        document.body.appendChild(notification);
         
         setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                if (container.contains(notification)) {
-                    container.removeChild(notification);
-                }
-            }, 300);
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
         }, 4000);
     }
-
-    // ... (include all your other existing methods here)
 }
 
-// Add enhanced CSS for loading states
-const enhancedStyle = document.createElement('style');
-enhancedStyle.textContent = `
+// Add CSS for fadeOut animation
+const style = document.createElement('style');
+style.textContent = `
     @keyframes fadeOut {
         from { opacity: 1; }
         to { opacity: 0; }
     }
-    
-    /* Enhanced Loading States */
-    .auth-btn.loading,
-    .premium-btn.loading {
-        pointer-events: none !important;
-        opacity: 0.8 !important;
-        cursor: not-allowed !important;
-        position: relative;
-    }
-    
-    .auth-btn.loading *,
-    .premium-btn.loading * {
-        opacity: 0.3;
-    }
-    
-    /* Modal States */
-    .modal.show {
-        opacity: 1;
-        visibility: visible;
-    }
-    
-    .modal {
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
+    .hidden { 
+        display: none !important; 
     }
 `;
-document.head.appendChild(enhancedStyle);
+document.head.appendChild(style);
 
-// Initialize app with error handling
-let app;
+// Initialize app with extensive debugging
+console.log('🌟 Starting StudySpend Pro...');
+
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 DOM loaded, initializing app...');
+    console.log('📄 DOM loaded');
     
-    // Add a small delay to ensure Firebase is loaded
+    // Check if required elements exist
+    const requiredElements = ['splash-screen', 'auth-screen', 'main-app'];
+    const missingElements = [];
+    
+    requiredElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (!element) {
+            missingElements.push(id);
+        } else {
+            console.log(`✅ Found element: ${id}`);
+        }
+    });
+    
+    if (missingElements.length > 0) {
+        console.error('❌ Missing required elements:', missingElements);
+        alert(`Missing required HTML elements: ${missingElements.join(', ')}\n\nPlease check your index.html file.`);
+        return;
+    }
+    
+    // Initialize app with delay to ensure everything is loaded
     setTimeout(() => {
         try {
-            app = new StudySpendPro();
-            window.app = app;
+            window.app = new StudySpendPro();
             console.log('✅ App initialized successfully');
         } catch (error) {
             console.error('❌ Failed to initialize app:', error);
+            alert('Failed to initialize app. Check console for details.');
         }
-    }, 500);
+    }, 100);
 });
 
-// Add global error handler
+// Global error handlers
 window.addEventListener('error', (event) => {
     console.error('🚨 Global error:', event.error);
 });
 
-// Add unhandled promise rejection handler
 window.addEventListener('unhandledrejection', (event) => {
     console.error('🚨 Unhandled promise rejection:', event.reason);
 });
