@@ -13,7 +13,7 @@ class StudySpendPro {
         this.archivedMonths = [];
         this.charts = {};
         
-        // Auto logout timer - 30 minutes
+        // Auto logout timer
         this.idleTimer = null;
         this.lastActivity = Date.now();
         this.IDLE_TIMEOUT = 30 * 60 * 1000;
@@ -31,7 +31,6 @@ class StudySpendPro {
         this.waitForFirebaseAndSetupAuth();
         this.setupIdleTimer();
         
-        // Online/offline detection
         window.addEventListener('online', () => this.updateSyncStatus('synced'));
         window.addEventListener('offline', () => this.updateSyncStatus('offline'));
     }
@@ -52,7 +51,6 @@ class StudySpendPro {
         
         if (!splash || !authScreen) {
             console.error('❌ Required elements not found');
-            alert('Error: Missing HTML elements. Check your index.html file.');
             return;
         }
         
@@ -120,7 +118,6 @@ class StudySpendPro {
         }
     }
 
-    // AUTO LOGOUT FUNCTIONALITY
     setupIdleTimer() {
         const resetTimer = () => {
             this.lastActivity = Date.now();
@@ -203,11 +200,9 @@ class StudySpendPro {
                 }
             }
             
-            // Update UI with user info
             document.getElementById('user-name').textContent = 
                 this.currentUser.displayName || this.currentUser.email.split('@')[0];
             
-            // Set values in settings
             const settingsEmail = document.getElementById('settings-email');
             const settingsName = document.getElementById('settings-name');
             const settingsJoined = document.getElementById('settings-joined');
@@ -216,7 +211,6 @@ class StudySpendPro {
             if (settingsName) settingsName.value = this.currentUser.displayName || '';
             if (settingsJoined) settingsJoined.value = new Date(this.currentUser.metadata.creationTime).toLocaleDateString();
             
-            // Update budget displays
             const currentBudgetDisplay = document.getElementById('current-budget-display');
             const budgetPeriodDisplay = document.getElementById('budget-period-display');
             const currentPeriodDisplay = document.getElementById('current-period-display');
@@ -225,7 +219,6 @@ class StudySpendPro {
             if (budgetPeriodDisplay) budgetPeriodDisplay.textContent = `${this.currentPeriod.duration} days`;
             if (currentPeriodDisplay) currentPeriodDisplay.textContent = `${this.currentPeriod.duration} Days`;
             
-            // Set user avatar
             const avatar = document.getElementById('user-avatar');
             if (avatar) {
                 if (this.currentUser.photoURL) {
@@ -235,7 +228,6 @@ class StudySpendPro {
                 }
             }
 
-            // Fix input labels after setting values
             setTimeout(() => this.fixInputLabels(), 100);
         } catch (error) {
             console.error('Error setting up user profile:', error);
@@ -246,7 +238,6 @@ class StudySpendPro {
     setupEventListeners() {
         console.log('🎧 Setting up event listeners...');
         
-        // Auth tabs
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const tab = btn.dataset.tab;
@@ -254,7 +245,6 @@ class StudySpendPro {
             });
         });
 
-        // Auth forms
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const googleBtn = document.getElementById('google-login');
@@ -280,7 +270,6 @@ class StudySpendPro {
             });
         }
 
-        // Navigation
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
                 const section = item.dataset.section;
@@ -289,7 +278,6 @@ class StudySpendPro {
             });
         });
 
-        // Logo click
         const homeBtn = document.getElementById('home-btn');
         if (homeBtn) {
             homeBtn.addEventListener('click', () => {
@@ -298,43 +286,12 @@ class StudySpendPro {
             });
         }
 
-        // Logout buttons
         const logoutBtn = document.getElementById('logout-btn');
         const logoutSettings = document.getElementById('logout-settings');
         
         if (logoutBtn) logoutBtn.addEventListener('click', () => this.logout());
         if (logoutSettings) logoutSettings.addEventListener('click', () => this.logout());
 
-        // Period controls
-        const periodSettingsBtn = document.getElementById('period-settings-btn');
-        const resetMonthBtn = document.getElementById('reset-month-btn');
-        const prevMonthBtn = document.getElementById('prev-month-btn');
-        const nextMonthBtn = document.getElementById('next-month-btn');
-
-        if (periodSettingsBtn) periodSettingsBtn.addEventListener('click', () => this.showPeriodModal());
-        if (resetMonthBtn) resetMonthBtn.addEventListener('click', () => this.showResetModal());
-        if (prevMonthBtn) prevMonthBtn.addEventListener('click', () => this.navigateMonth(-1));
-        if (nextMonthBtn) nextMonthBtn.addEventListener('click', () => this.navigateMonth(1));
-
-        // Budget management
-        const editBudgetBtn = document.getElementById('edit-budget-btn');
-        const cancelBudgetEdit = document.getElementById('cancel-budget-edit');
-        const saveBudget = document.getElementById('save-budget');
-
-        if (editBudgetBtn) editBudgetBtn.addEventListener('click', () => this.toggleBudgetEdit());
-        if (cancelBudgetEdit) cancelBudgetEdit.addEventListener('click', () => this.toggleBudgetEdit(false));
-        if (saveBudget) saveBudget.addEventListener('click', () => this.saveBudgetSettings());
-
-        // Quick actions
-        const addExpenseQuick = document.getElementById('add-expense-quick');
-        if (addExpenseQuick) {
-            addExpenseQuick.addEventListener('click', () => {
-                this.showSection('add-expense');
-                this.setActiveNav(document.querySelector('[data-section="add-expense"]'));
-            });
-        }
-
-        // Expense form
         const expenseForm = document.getElementById('expense-form');
         const clearForm = document.getElementById('clear-form');
 
@@ -344,7 +301,6 @@ class StudySpendPro {
         });
         if (clearForm) clearForm.addEventListener('click', () => this.clearExpenseForm());
 
-        // Quick amount buttons
         document.querySelectorAll('.quick-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const amountInput = document.getElementById('expense-amount');
@@ -355,28 +311,6 @@ class StudySpendPro {
             });
         });
 
-        // Export and delete
-        const exportData = document.getElementById('export-data');
-        const deleteMonthData = document.getElementById('delete-month-data');
-
-        if (exportData) exportData.addEventListener('click', () => this.exportExpenses());
-        if (deleteMonthData) deleteMonthData.addEventListener('click', () => this.deleteMonthData());
-
-        // History filters
-        const searchExpenses = document.getElementById('search-expenses');
-        const filterCategory = document.getElementById('filter-category');
-
-        if (searchExpenses) searchExpenses.addEventListener('input', () => this.filterExpenses());
-        if (filterCategory) filterCategory.addEventListener('change', () => this.filterExpenses());
-
-        // Analytics
-        const analyticsPeriod = document.getElementById('analytics-period');
-        if (analyticsPeriod) analyticsPeriod.addEventListener('change', () => this.updateAnalytics());
-
-        // Modal handlers
-        this.setupModalHandlers();
-
-        // View all buttons
         document.querySelectorAll('.view-all-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const section = btn.dataset.section;
@@ -387,7 +321,6 @@ class StudySpendPro {
             });
         });
 
-        // Add first expense buttons
         document.querySelectorAll('[data-section="add-expense"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 this.showSection('add-expense');
@@ -395,36 +328,12 @@ class StudySpendPro {
             });
         });
 
-        // Set today's date
         this.setTodaysDate();
-
-        // Fix input labels on load
         setTimeout(() => this.fixInputLabels(), 100);
         
         console.log('✅ Event listeners setup complete');
     }
 
-    setupModalHandlers() {
-        // Period modal
-        const closePeriodModal = document.getElementById('close-period-modal');
-        const cancelPeriod = document.getElementById('cancel-period');
-        const savePeriod = document.getElementById('save-period');
-
-        if (closePeriodModal) closePeriodModal.addEventListener('click', () => this.closePeriodModal());
-        if (cancelPeriod) cancelPeriod.addEventListener('click', () => this.closePeriodModal());
-        if (savePeriod) savePeriod.addEventListener('click', () => this.savePeriodSettings());
-
-        // Reset modal
-        const closeResetModal = document.getElementById('close-reset-modal');
-        const cancelReset = document.getElementById('cancel-reset');
-        const confirmReset = document.getElementById('confirm-reset');
-
-        if (closeResetModal) closeResetModal.addEventListener('click', () => this.closeResetModal());
-        if (cancelReset) cancelReset.addEventListener('click', () => this.closeResetModal());
-        if (confirmReset) confirmReset.addEventListener('click', () => this.resetMonth());
-    }
-
-    // Fix input labels positioning issue - ENHANCED
     fixInputLabels() {
         document.querySelectorAll('.input-group').forEach(group => {
             const input = group.querySelector('input, select, textarea');
@@ -453,10 +362,7 @@ class StudySpendPro {
                 }
             };
 
-            // Initial update
             updateLabel();
-
-            // Event listeners
             input.addEventListener('focus', updateLabel);
             input.addEventListener('blur', updateLabel);
             input.addEventListener('input', updateLabel);
@@ -478,7 +384,6 @@ class StudySpendPro {
         setTimeout(() => this.fixInputLabels(), 100);
     }
 
-    // FIXED LOGIN HANDLING
     async handleLogin() {
         console.log('🔐 Handling login...');
         
@@ -508,7 +413,6 @@ class StudySpendPro {
             
             console.log('✅ Login successful');
             
-            // Clear form
             emailInput.value = '';
             passwordInput.value = '';
             this.fixInputLabels();
@@ -521,7 +425,6 @@ class StudySpendPro {
         }
     }
 
-    // FIXED REGISTER HANDLING
     async handleRegister() {
         console.log('📝 Handling registration...');
         
@@ -570,7 +473,6 @@ class StudySpendPro {
             console.log('✅ Registration successful');
             this.showNotification('Account created successfully!', 'success');
             
-            // Clear form
             nameInput.value = '';
             emailInput.value = '';
             passwordInput.value = '';
@@ -585,7 +487,6 @@ class StudySpendPro {
         }
     }
 
-    // FIXED GOOGLE LOGIN HANDLING
     async handleGoogleLogin() {
         console.log('🔍 Handling Google login...');
         
@@ -656,7 +557,6 @@ class StudySpendPro {
             targetSection.classList.add('active');
         }
 
-        // Load section-specific data
         switch(sectionId) {
             case 'dashboard':
                 this.updateDashboard();
@@ -667,3 +567,472 @@ class StudySpendPro {
             case 'analytics':
                 this.updateAnalytics();
                 break;
+        }
+    }
+
+    setActiveNav(activeItem) {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        if (activeItem) activeItem.classList.add('active');
+    }
+
+    async loadUserData() {
+        if (!this.currentUser) return;
+        
+        this.loadExpenses();
+        this.loadRecurringBills();
+        this.loadArchivedMonths();
+    }
+
+    loadExpenses() {
+        if (!this.currentUser) return;
+        
+        if (this.unsubscribeExpenses) {
+            this.unsubscribeExpenses();
+        }
+        
+        const expensesRef = firebase.firestore()
+            .collection('users')
+            .doc(this.currentUser.uid)
+            .collection('months')
+            .doc(this.currentMonth)
+            .collection('expenses');
+        
+        const q = expensesRef.orderBy('timestamp', 'desc');
+        
+        this.updateSyncStatus('syncing');
+        
+        this.unsubscribeExpenses = q.onSnapshot((snapshot) => {
+            this.expenses = [];
+            snapshot.forEach((doc) => {
+                this.expenses.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            this.updateDashboard();
+            this.displayExpenseHistory();
+            this.updateSyncStatus('synced');
+        }, (error) => {
+            console.error('Error loading expenses:', error);
+            this.updateSyncStatus('offline');
+        });
+    }
+
+    async addExpense() {
+        if (!this.currentUser) return;
+        
+        const descriptionInput = document.getElementById('expense-description');
+        const amountInput = document.getElementById('expense-amount');
+        const categorySelect = document.getElementById('expense-category');
+        const dateInput = document.getElementById('expense-date');
+        const notesInput = document.getElementById('expense-notes');
+        const btn = document.querySelector('#expense-form .primary-btn');
+        
+        if (!descriptionInput || !amountInput || !categorySelect || !dateInput) {
+            this.showNotification('Expense form not found', 'error');
+            return;
+        }
+
+        const description = descriptionInput.value.trim();
+        const amount = parseFloat(amountInput.value);
+        const category = categorySelect.value;
+        const date = dateInput.value;
+        const notes = notesInput ? notesInput.value.trim() : '';
+        
+        if (!description || !amount || !category || !date) {
+            this.showNotification('Please fill in all required fields!', 'error');
+            return;
+        }
+        
+        try {
+            this.setButtonLoading(btn, true);
+            this.updateSyncStatus('syncing');
+            
+            const expenseData = {
+                description,
+                amount,
+                category,
+                date,
+                notes,
+                timestamp: new Date(),
+                userId: this.currentUser.uid
+            };
+            
+            const expensesRef = firebase.firestore()
+                .collection('users')
+                .doc(this.currentUser.uid)
+                .collection('months')
+                .doc(this.currentMonth)
+                .collection('expenses');
+            
+            await expensesRef.add(expenseData);
+            
+            this.clearExpenseForm();
+            this.showNotification(`Expense of ₹${amount} added successfully!`, 'success');
+            this.showSection('dashboard');
+            this.setActiveNav(document.querySelector('[data-section="dashboard"]'));
+            
+        } catch (error) {
+            console.error('Error adding expense:', error);
+            this.showNotification('Error adding expense. Please try again.', 'error');
+        } finally {
+            this.setButtonLoading(btn, false);
+        }
+    }
+
+    clearExpenseForm() {
+        const expenseForm = document.getElementById('expense-form');
+        if (expenseForm) {
+            expenseForm.reset();
+            this.setTodaysDate();
+            
+            document.querySelectorAll('#expense-form .input-group label').forEach(label => {
+                label.style.transform = 'translateY(0) scale(1)';
+                label.style.color = 'rgba(255, 255, 255, 0.6)';
+            });
+        }
+    }
+
+    setTodaysDate() {
+        const dateInput = document.getElementById('expense-date');
+        if (dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+            
+            const label = document.querySelector('label[for="expense-date"]');
+            if (label) {
+                label.style.transform = 'translateY(-40px) scale(0.85)';
+                label.style.color = '#4facfe';
+            }
+        }
+    }
+
+    updateDashboard() {
+        if (!this.expenses.length) {
+            this.showEmptyDashboard();
+            return;
+        }
+        
+        const totalSpent = this.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+        const budget = this.currentPeriod.budget;
+        const remaining = Math.max(0, budget - totalSpent);
+        const progressPercentage = Math.min((totalSpent / budget) * 100, 100);
+        
+        const today = new Date().toISOString().split('T')[0];
+        const todayExpenses = this.expenses.filter(expense => expense.date === today);
+        const todayTotal = todayExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+        
+        const periodStart = new Date(this.currentPeriod.startDate);
+        const periodEnd = new Date(periodStart);
+        periodEnd.setDate(periodEnd.getDate() + this.currentPeriod.duration);
+        
+        const today_date = new Date();
+        const daysLeft = Math.max(0, Math.ceil((periodEnd - today_date) / (1000 * 60 * 60 * 24)));
+        
+        const daysElapsed = Math.max(1, Math.ceil((today_date - periodStart) / (1000 * 60 * 60 * 24)));
+        const dailyAverage = totalSpent / daysElapsed;
+        
+        const elements = {
+            'total-spending': totalSpent.toLocaleString(),
+            'total-budget': budget.toLocaleString(),
+            'remaining-budget': remaining.toLocaleString(),
+            'today-spending': todayTotal.toLocaleString(),
+            'today-transactions': todayExpenses.length,
+            'daily-average': dailyAverage.toFixed(0),
+            'days-left': daysLeft
+        };
+
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        });
+        
+        const progressBar = document.getElementById('spending-progress');
+        if (progressBar) {
+            progressBar.style.width = `${progressPercentage}%`;
+        }
+        
+        this.displayRecentActivity();
+    }
+
+    showEmptyDashboard() {
+        const elements = {
+            'total-spending': '0',
+            'remaining-budget': this.currentPeriod.budget.toLocaleString(),
+            'today-spending': '0',
+            'today-transactions': '0',
+            'daily-average': '0',
+            'days-left': this.currentPeriod.duration
+        };
+
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        });
+
+        const progressBar = document.getElementById('spending-progress');
+        if (progressBar) progressBar.style.width = '0%';
+    }
+
+    displayRecentActivity() {
+        const container = document.getElementById('recent-activities');
+        if (!container) return;
+
+        const recent = this.expenses.slice(0, 5);
+        
+        if (recent.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <h4>No expenses yet</h4>
+                    <p>Start tracking your expenses to see them here</p>
+                    <button class="premium-btn primary-btn" data-section="add-expense">Add First Expense</button>
+                </div>
+            `;
+            
+            const addBtn = container.querySelector('[data-section="add-expense"]');
+            if (addBtn) {
+                addBtn.addEventListener('click', () => {
+                    this.showSection('add-expense');
+                    this.setActiveNav(document.querySelector('[data-section="add-expense"]'));
+                });
+            }
+            return;
+        }
+        
+        container.innerHTML = recent.map(expense => `
+            <div class="expense-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--glass-border);">
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 4px;">${expense.description}</div>
+                    <div style="font-size: 0.85rem; opacity: 0.7;">
+                        ${this.getCategoryEmoji(expense.category)} ${expense.category} • ${this.formatDate(expense.date)}
+                    </div>
+                </div>
+                <div style="font-weight: 700; font-size: 1.1rem;">₹${expense.amount.toLocaleString()}</div>
+            </div>
+        `).join('');
+    }
+
+    displayExpenseHistory() {
+        this.filterExpenses();
+    }
+
+    filterExpenses() {
+        const searchInput = document.getElementById('search-expenses');
+        const categoryFilter = document.getElementById('filter-category');
+
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const categoryFilter_value = categoryFilter ? categoryFilter.value : '';
+        
+        let filteredExpenses = this.expenses.filter(expense => {
+            const matchesSearch = expense.description.toLowerCase().includes(searchTerm) ||
+                                expense.category.toLowerCase().includes(searchTerm);
+            const matchesCategory = !categoryFilter_value || expense.category === categoryFilter_value;
+            
+            return matchesSearch && matchesCategory;
+        });
+        
+        const totalAmount = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+        const averageAmount = filteredExpenses.length > 0 ? totalAmount / filteredExpenses.length : 0;
+        
+        const summaryElements = {
+            'summary-total': `₹${totalAmount.toLocaleString()}`,
+            'summary-count': filteredExpenses.length,
+            'summary-average': `₹${averageAmount.toFixed(0)}`
+        };
+
+        Object.entries(summaryElements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        });
+        
+        const container = document.getElementById('expenses-list');
+        if (!container) return;
+        
+        if (filteredExpenses.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <h4>No expenses found</h4>
+                    <p>Try adjusting your search filters</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = filteredExpenses.map(expense => `
+            <div class="expense-item" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; margin-bottom: 12px; background: var(--glass-bg); border-radius: 12px; border: 1px solid var(--glass-border);">
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; margin-bottom: 4px;">${expense.description}</div>
+                    <div style="font-size: 0.85rem; opacity: 0.7; display: flex; gap: 12px;">
+                        <span>${this.getCategoryEmoji(expense.category)} ${expense.category}</span>
+                        <span>${this.formatDate(expense.date)}</span>
+                        ${expense.notes ? `<span>${expense.notes}</span>` : ''}
+                    </div>
+                </div>
+                <div style="font-weight: 700; font-size: 1.2rem;">₹${expense.amount.toLocaleString()}</div>
+            </div>
+        `).join('');
+    }
+
+    async loadRecurringBills() {
+        // Placeholder implementation
+    }
+
+    async loadArchivedMonths() {
+        // Placeholder implementation
+    }
+
+    updateCurrentMonthDisplay() {
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+        
+        const [year, month] = this.currentMonth.split('-');
+        const monthName = monthNames[parseInt(month) - 1];
+        
+        const display = document.getElementById('current-month-display');
+        if (display) display.textContent = `${monthName} ${year}`;
+    }
+
+    async updateAnalytics() {
+        // Placeholder implementation
+    }
+
+    getCategoryEmoji(category) {
+        const emojis = {
+            'Food': '🍽️',
+            'Transport': '🚌',
+            'Education': '📚',
+            'Entertainment': '🎬',
+            'Health': '💊',
+            'Shopping': '🛍️',
+            'Personal': '👤',
+            'Emergency': '🚨',
+            'Other': '📋'
+        };
+        return emojis[category] || '📋';
+    }
+
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN', { 
+            day: 'numeric', 
+            month: 'short', 
+            year: 'numeric' 
+        });
+    }
+
+    updateSyncStatus(status) {
+        const syncElement = document.getElementById('sync-status');
+        if (!syncElement) return;
+        
+        const icon = syncElement.querySelector('i');
+        const textNodes = Array.from(syncElement.childNodes).filter(node => node.nodeType === Node.TEXT_NODE);
+        
+        switch (status) {
+            case 'syncing':
+                if (icon) icon.className = 'fas fa-sync-alt fa-spin';
+                if (textNodes.length > 0) textNodes[0].textContent = ' Syncing...';
+                break;
+            case 'synced':
+                if (icon) icon.className = 'fas fa-cloud-upload-alt';
+                if (textNodes.length > 0) textNodes[0].textContent = ' Synced';
+                break;
+            case 'offline':
+                if (icon) icon.className = 'fas fa-wifi-slash';
+                if (textNodes.length > 0) textNodes[0].textContent = ' Offline';
+                break;
+        }
+    }
+
+    setButtonLoading(button, loading) {
+        if (!button) return;
+        
+        if (loading) {
+            button.classList.add('loading');
+            button.disabled = true;
+        } else {
+            button.classList.remove('loading');
+            button.disabled = false;
+        }
+    }
+
+    getFirebaseErrorMessage(error) {
+        console.log('🔍 Firebase error code:', error.code);
+        
+        const errorMessages = {
+            'auth/user-not-found': 'No account found with this email address.',
+            'auth/wrong-password': 'Incorrect password. Please try again.',
+            'auth/email-already-in-use': 'An account with this email already exists.',
+            'auth/weak-password': 'Password should be at least 6 characters long.',
+            'auth/invalid-email': 'Please enter a valid email address.',
+            'auth/user-disabled': 'This account has been disabled.',
+            'auth/invalid-credential': 'Invalid email or password.',
+            'auth/network-request-failed': 'Network error. Please check your internet connection.',
+            'auth/popup-closed-by-user': 'Sign-in cancelled.',
+            'auth/popup-blocked': 'Popup blocked. Please allow popups for this site.'
+        };
+        
+        return errorMessages[error.code] || error.message || 'An unexpected error occurred. Please try again.';
+    }
+
+    showNotification(message, type = 'info') {
+        console.log(`📢 ${type.toUpperCase()}: ${message}`);
+        
+        const container = document.getElementById('notifications') || document.body;
+        
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'error' ? '#ff6b6b' : type === 'success' ? '#51cf66' : '#339af0'};
+            color: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            max-width: 350px;
+            font-family: 'Inter', sans-serif;
+        `;
+        notification.textContent = message;
+        
+        container.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 4000);
+    }
+}
+
+// Initialize app with proper error handling
+console.log('🌟 Starting StudySpend Pro...');
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 DOM Content Loaded');
+    
+    setTimeout(() => {
+        try {
+            window.app = new StudySpendPro();
+            console.log('✅ App initialized successfully');
+        } catch (error) {
+            console.error('❌ App initialization failed:', error);
+            console.log('Error details:', error.message, error.stack);
+        }
+    }, 500);
+});
+
+// Global error handlers
+window.addEventListener('error', (event) => {
+    console.error('🚨 Global error:', event.error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+    console.error('🚨 Unhandled promise rejection:', event.reason);
+});
