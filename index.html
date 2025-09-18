@@ -772,36 +772,33 @@
     <div id="notifications" class="notifications-container"></div>
 
     <!-- Firebase Config -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+   <!-- Replace your Firebase scripts with these v8 versions -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxoHEnbO2um_po3fOIgct7NsIAkkSipiE",
-            authDomain: "studyspend-pro.firebaseapp.com",
-            projectId: "studyspend-pro",
-            storageBucket: "studyspend-pro.firebasestorage.app",
-            messagingSenderId: "234069009686",
-            appId: "1:234069009686:web:14ea36c3b5a3d484f11c37",
-            measurementId: "G-3X5DFJ979Z"
-        };
+<script>
+  // Firebase v8 Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBxoHEnbO2um_po3fOIgct7NsIAkkSipiE",
+    authDomain: "studyspend-pro.firebaseapp.com",
+    projectId: "studyspend-pro",
+    storageBucket: "studyspend-pro.firebasestorage.app",
+    messagingSenderId: "234069009686",
+    appId: "1:234069009686:web:14ea36c3b5a3d484f11c37",
+    measurementId: "G-3X5DFJ979Z"
+  };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  
+  // Make Firebase available globally
+  window.firebase = firebase;
+  
+  console.log('✅ Firebase v8 initialized successfully');
+</script>
 
-        window.firebase = {
-            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-            signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile,
-            doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot,
-            deleteDoc, where, getDocs, updateDoc
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            new StudySpendPro();
-        });
-    </script>
-    <script src="script.js"></script>
+<!-- Your script.js should come AFTER Firebase -->
+<script src="script.js"></script>
 </body>
 </html>
