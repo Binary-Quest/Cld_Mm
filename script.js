@@ -10,15 +10,11 @@ class StudySpendPro {
         console.log('📱 Starting app initialization...');
         this.showSplashScreen();
         this.setupEventListeners();
-        
-        // Wait for Firebase to be ready
         this.waitForFirebaseAndSetupAuth();
     }
 
     showSplashScreen() {
         console.log('✨ Showing splash screen');
-        
-        // Force transition after 3 seconds
         setTimeout(() => {
             console.log('⏰ Transitioning to auth...');
             this.transitionToAuth();
@@ -33,6 +29,7 @@ class StudySpendPro {
         
         if (!splash || !authScreen) {
             console.error('❌ Required elements not found');
+            alert('Error: Missing HTML elements. Check your index.html file.');
             return;
         }
         
@@ -48,7 +45,7 @@ class StudySpendPro {
     waitForFirebaseAndSetupAuth() {
         console.log('🔥 Checking for Firebase...');
         
-        // Check if Firebase is loaded
+        // Check if Firebase is properly loaded
         if (typeof firebase === 'undefined' || !firebase.auth) {
             console.log('⏳ Firebase not ready, retrying in 1 second...');
             setTimeout(() => this.waitForFirebaseAndSetupAuth(), 1000);
@@ -63,7 +60,7 @@ class StudySpendPro {
         console.log('👂 Setting up Firebase auth listener...');
         
         try {
-            // FIXED: Use proper Firebase v8 syntax
+            // FIXED: Use correct Firebase v8 syntax
             firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
                 .then(() => {
                     console.log('✅ Auth persistence set to LOCAL');
@@ -80,7 +77,7 @@ class StudySpendPro {
                             this.showNotification(`Welcome back, ${user.displayName || user.email}!`, 'success');
                         } else {
                             this.currentUser = null;
-                            console.log('👤 No user logged in');
+                            console.log('👤 No user logged in - showing auth screen');
                         }
                     });
                 })
@@ -120,31 +117,40 @@ class StudySpendPro {
             });
         });
 
-        // Login form
+        // Login form - FIXED
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
+                console.log('📝 Login form submitted');
                 this.handleLogin();
             });
+        } else {
+            console.warn('⚠️ Login form not found');
         }
 
-        // Register form
+        // Register form - FIXED
         const registerForm = document.getElementById('register-form');
         if (registerForm) {
             registerForm.addEventListener('submit', (e) => {
                 e.preventDefault();
+                console.log('📝 Register form submitted');
                 this.handleRegister();
             });
+        } else {
+            console.warn('⚠️ Register form not found');
         }
 
-        // Google login
+        // Google login - FIXED
         const googleBtn = document.getElementById('google-login');
         if (googleBtn) {
             googleBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                console.log('🔍 Google login clicked');
                 this.handleGoogleLogin();
             });
+        } else {
+            console.warn('⚠️ Google login button not found');
         }
 
         console.log('✅ Event listeners setup complete');
@@ -163,6 +169,7 @@ class StudySpendPro {
         if (form) form.classList.add('active');
     }
 
+    // FIXED LOGIN METHOD
     async handleLogin() {
         console.log('🔐 Handling login...');
         
@@ -171,7 +178,8 @@ class StudySpendPro {
         const btn = document.querySelector('#login-form .auth-btn');
         
         if (!emailInput || !passwordInput) {
-            this.showNotification('Login form not found', 'error');
+            console.error('❌ Login inputs not found');
+            this.showNotification('Login form elements not found', 'error');
             return;
         }
 
@@ -185,10 +193,11 @@ class StudySpendPro {
         
         try {
             this.setButtonLoading(btn, true);
-            console.log('🔑 Signing in user:', email);
+            console.log('🔑 Attempting login for:', email);
             
-            // FIXED: Use Firebase v8 syntax
+            // FIXED: Use correct Firebase auth method
             await firebase.auth().signInWithEmailAndPassword(email, password);
+            
             console.log('✅ Login successful');
             
             // Clear form
@@ -203,6 +212,7 @@ class StudySpendPro {
         }
     }
 
+    // FIXED REGISTER METHOD
     async handleRegister() {
         console.log('📝 Handling registration...');
         
@@ -213,7 +223,8 @@ class StudySpendPro {
         const btn = document.querySelector('#register-form .auth-btn');
         
         if (!nameInput || !emailInput || !passwordInput || !confirmInput) {
-            this.showNotification('Registration form not found', 'error');
+            console.error('❌ Register inputs not found');
+            this.showNotification('Registration form elements not found', 'error');
             return;
         }
 
@@ -241,9 +252,10 @@ class StudySpendPro {
             this.setButtonLoading(btn, true);
             console.log('📋 Creating account for:', email);
             
-            // FIXED: Use Firebase v8 syntax
+            // FIXED: Use correct Firebase auth method
             const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
             
+            // Update user profile
             await userCredential.user.updateProfile({
                 displayName: name
             });
@@ -265,6 +277,7 @@ class StudySpendPro {
         }
     }
 
+    // FIXED GOOGLE LOGIN METHOD
     async handleGoogleLogin() {
         console.log('🔍 Handling Google login...');
         
@@ -273,15 +286,19 @@ class StudySpendPro {
         try {
             this.setButtonLoading(btn, true);
             
-            // FIXED: Use Firebase v8 syntax
+            // FIXED: Use correct Firebase auth method
             const provider = new firebase.auth.GoogleAuthProvider();
+            provider.addScope('email');
+            provider.addScope('profile');
+            
             await firebase.auth().signInWithPopup(provider);
             
             console.log('✅ Google login successful');
             
         } catch (error) {
             console.error('❌ Google login error:', error);
-            if (error.code !== 'auth/popup-closed-by-user') {
+            if (error.code !== 'auth/popup-closed-by-user' && 
+                error.code !== 'auth/cancelled-popup-request') {
                 this.showNotification(this.getFirebaseErrorMessage(error), 'error');
             }
         } finally {
@@ -290,42 +307,64 @@ class StudySpendPro {
     }
 
     setButtonLoading(button, loading) {
-        if (!button) return;
+        if (!button) {
+            console.warn('⚠️ Button not found for loading state');
+            return;
+        }
         
         if (loading) {
+            console.log('⏳ Setting button loading state');
             button.disabled = true;
             button.style.opacity = '0.7';
+            button.style.pointerEvents = 'none';
+            
+            // Store original content
+            if (!button.dataset.originalContent) {
+                button.dataset.originalContent = button.innerHTML;
+            }
+            
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
         } else {
+            console.log('✅ Clearing button loading state');
             button.disabled = false;
             button.style.opacity = '1';
-            // Restore original text - you may need to store this
-            if (button.id === 'google-login') {
-                button.innerHTML = '<i class="fab fa-google"></i><span>Google</span>';
-            } else {
-                button.innerHTML = button.dataset.originalText || 'Submit';
+            button.style.pointerEvents = 'auto';
+            
+            // Restore original content
+            if (button.dataset.originalContent) {
+                button.innerHTML = button.dataset.originalContent;
             }
         }
     }
 
     getFirebaseErrorMessage(error) {
+        console.log('🔍 Firebase error code:', error.code);
+        
         const errorMessages = {
-            'auth/user-not-found': 'No account found with this email.',
-            'auth/wrong-password': 'Incorrect password.',
-            'auth/email-already-in-use': 'Email already registered.',
-            'auth/weak-password': 'Password too weak.',
-            'auth/invalid-email': 'Invalid email address.',
-            'auth/network-request-failed': 'Network error. Check connection.',
-            'auth/popup-blocked': 'Popup blocked. Allow popups for this site.',
-            'auth/too-many-requests': 'Too many failed attempts. Try again later.'
+            'auth/user-not-found': 'No account found with this email address.',
+            'auth/wrong-password': 'Incorrect password. Please try again.',
+            'auth/email-already-in-use': 'An account with this email already exists.',
+            'auth/weak-password': 'Password should be at least 6 characters long.',
+            'auth/invalid-email': 'Please enter a valid email address.',
+            'auth/user-disabled': 'This account has been disabled.',
+            'auth/invalid-credential': 'Invalid email or password.',
+            'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
+            'auth/network-request-failed': 'Network error. Please check your internet connection.',
+            'auth/popup-closed-by-user': 'Sign-in cancelled by user.',
+            'auth/cancelled-popup-request': 'Sign-in cancelled.',
+            'auth/popup-blocked': 'Popup blocked. Please allow popups for this site.',
+            'auth/internal-error': 'Internal error. Please try again.',
+            'auth/invalid-api-key': 'Invalid Firebase configuration.',
+            'auth/app-deleted': 'Firebase app has been deleted.'
         };
         
-        return errorMessages[error.code] || error.message || 'An error occurred. Please try again.';
+        return errorMessages[error.code] || error.message || 'An unexpected error occurred. Please try again.';
     }
 
     showNotification(message, type = 'info') {
         console.log(`📢 ${type.toUpperCase()}: ${message}`);
         
+        // Create notification element
         const notification = document.createElement('div');
         notification.style.cssText = `
             position: fixed;
@@ -338,12 +377,14 @@ class StudySpendPro {
             z-index: 10000;
             font-weight: 500;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            max-width: 300px;
+            max-width: 350px;
+            font-family: 'Inter', sans-serif;
         `;
         notification.textContent = message;
         
         document.body.appendChild(notification);
         
+        // Remove after 4 seconds
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.parentNode.removeChild(notification);
@@ -352,24 +393,44 @@ class StudySpendPro {
     }
 }
 
-// Add CSS
+// Add essential CSS
 const style = document.createElement('style');
 style.textContent = `
     @keyframes fadeOut {
         from { opacity: 1; }
         to { opacity: 0; }
     }
+    
     .hidden { 
         display: none !important; 
+    }
+    
+    .fa-spinner {
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 `;
 document.head.appendChild(style);
 
-// Initialize app
+// Initialize app with proper error handling
 console.log('🌟 Starting StudySpend Pro...');
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM Content Loaded');
+    
+    // Check if required elements exist
+    const requiredElements = ['splash-screen', 'auth-screen', 'main-app'];
+    const missingElements = requiredElements.filter(id => !document.getElementById(id));
+    
+    if (missingElements.length > 0) {
+        console.error('❌ Missing HTML elements:', missingElements);
+        alert(`Missing required HTML elements: ${missingElements.join(', ')}\n\nPlease check your index.html file.`);
+        return;
+    }
     
     setTimeout(() => {
         try {
@@ -379,5 +440,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('❌ App initialization failed:', error);
             alert('App failed to initialize. Check console for details.');
         }
-    }, 100);
+    }, 500);
+});
+
+// Global error handlers
+window.addEventListener('error', (event) => {
+    console.error('🚨 Global error:', event.error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+    console.error('🚨 Unhandled promise rejection:', event.reason);
 });
