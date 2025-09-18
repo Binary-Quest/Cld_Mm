@@ -5,30 +5,15 @@ class StudySpendPro {
         this.unsubscribeExpenses = null;
         this.isOnline = navigator.onLine;
         
-        // Wait for Firebase to be available
-        this.waitForFirebase().then(() => {
-            this.init();
-        });
-    }
-
-    async waitForFirebase() {
-        let attempts = 0;
-        while (!window.firebase && attempts < 50) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        
-        if (!window.firebase) {
-            throw new Error('Firebase not loaded');
-        }
+        this.init();
     }
 
     init() {
+        this.showSplashScreen();
         this.setupEventListeners();
         this.setupAuthStateListener();
-        this.showLoadingScreen();
         
-        // Check online status
+        // Online/offline detection
         window.addEventListener('online', () => {
             this.isOnline = true;
             this.updateSyncStatus('synced');
@@ -40,32 +25,31 @@ class StudySpendPro {
         });
     }
 
-    showLoadingScreen() {
-        document.getElementById('loading-screen').style.display = 'flex';
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'none';
+    showSplashScreen() {
+        // Show splash for 3 seconds then transition to auth
+        setTimeout(() => {
+            this.transitionToAuth();
+        }, 3000);
     }
 
-    hideLoadingScreen() {
-        document.getElementById('loading-screen').style.display = 'none';
-    }
-
-    showLoginScreen() {
-        this.hideLoadingScreen();
-        document.getElementById('login-screen').style.display = 'flex';
-        document.getElementById('main-app').style.display = 'none';
-    }
-
-    showMainApp() {
-        this.hideLoadingScreen();
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'flex';
-        this.loadUserExpenses();
-        this.updateDashboard();
+    transitionToAuth() {
+        const splash = document.getElementById('splash-screen');
+        splash.style.animation = 'fadeOut 0.8s ease-out forwards';
+        
+        setTimeout(() => {
+            splash.classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
+        }, 800);
     }
 
     setupAuthStateListener() {
-        window.firebase.onAuthStateChanged(window.firebaseAuth, async (user) => {
+        if (!window.firebase) {
+            // Fallback if Firebase not loaded
+            setTimeout(() => this.setupAuthStateListener(), 1000);
+            return;
+        }
+        
+        window.firebase.onAuthStateChanged(window.firebase.auth, async (user) => {
             if (user) {
                 this.currentUser = user;
                 await this.setupUserProfile();
@@ -73,101 +57,131 @@ class StudySpendPro {
                 this.showNotification(`Welcome back, ${user.displayName || user.email}!`, 'success');
             } else {
                 this.currentUser = null;
-                this.showLoginScreen();
+                if (!document.getElementById('auth-screen').classList.contains('hidden')) {
+                    // Already showing auth screen
+                    return;
+                }
+                this.showAuthScreen();
             }
         });
+    }
+
+    showAuthScreen() {
+        document.getElementById('splash-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.add('hidden');
+        document.getElementById('auth-screen').classList.remove('hidden');
+    }
+
+    showMainApp() {
+        document.getElementById('splash-screen').classList.add('hidden');
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        
+        this.loadUserExpenses();
+        this.updateDashboard();
     }
 
     async setupUserProfile() {
         if (!this.currentUser) return;
         
-        const userDocRef = window.firebase.doc(window.firebaseDB, 'users', this.currentUser.uid);
-        const userDoc = await window.firebase.getDoc(userDocRef);
-        
-        if (!userDoc.exists()) {
-            // Create user profile
-            await window.firebase.setDoc(userDocRef, {
-                email: this.currentUser.email,
-                displayName: this.currentUser.displayName || 'User',
-                createdAt: new Date().toISOString(),
-                settings: {
-                    budget: 10000,
-                    currency: 'INR'
-                }
-            });
-        }
-        
-        // Update UI
-        document.getElementById('current-username').textContent = 
-            this.currentUser.displayName || this.currentUser.email.split('@')[0];
-        document.getElementById('user-email').value = this.currentUser.email;
-        document.getElementById('user-name').value = this.currentUser.displayName || '';
-        
-        // Set user avatar if available
-        if (this.currentUser.photoURL) {
-            const avatarImg = document.getElementById('user-avatar');
-            const avatarIcon = document.getElementById('user-icon');
-            avatarImg.src = this.currentUser.photoURL;
-            avatarImg.style.display = 'block';
-            avatarIcon.style.display = 'none';
+        try {
+            const userDocRef = window.firebase.doc(window.firebase.db, 'users', this.currentUser.uid);
+            const userDoc = await window.firebase.getDoc(userDocRef);
+            
+            if (!userDoc.exists()) {
+                await window.firebase.setDoc(userDocRef, {
+                    email: this.currentUser.email,
+                    displayName: this.currentUser.displayName || 'User',
+                    createdAt: new Date().toISOString(),
+                    settings: {
+                        budget: 10000,
+                        currency: 'INR'
+                    }
+                });
+            }
+            
+            // Update UI
+            document.getElementById('user-name').textContent = 
+                this.currentUser.displayName || this.currentUser.email.split('@')[0];
+            document.getElementById('user-email').value = this.currentUser.email;
+            document.getElementById('user-display-name').value = this.currentUser.displayName || '';
+            
+            // Set user avatar
+            const avatar = document.getElementById('user-avatar');
+            if (this.currentUser.photoURL) {
+                avatar.innerHTML = `<img src="${this.currentUser.photoURL}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            } else {
+                avatar.innerHTML = '<i class="fas fa-user"></i>';
+            }
+        } catch (error) {
+            console.error('Error setting up user profile:', error);
         }
     }
 
     setupEventListeners() {
-        // Tab switching
-        window.switchTab = (tab) => {
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            const tabBtns = document.querySelectorAll('.tab-btn');
-            
-            tabBtns.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
-            
-            if (tab === 'login') {
-                loginForm.classList.add('active');
-                registerForm.classList.remove('active');
-            } else {
-                loginForm.classList.remove('active');
-                registerForm.classList.add('active');
-            }
-        };
-
-        // Login form
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.handleLogin();
-        });
-
-        // Register form
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.handleRegister();
-        });
-
-        // Google login
-        document.getElementById('google-login').addEventListener('click', async () => {
-            await this.handleGoogleLogin();
-        });
-
-        // Navigation
-        this.setupNavigation();
-
-        // Expense form
-        document.getElementById('expense-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.addExpense();
-        });
-
-        // Quick amount buttons
-        document.querySelectorAll('.quick-amount-btn').forEach(btn => {
+        // Auth tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.getElementById('expense-amount').value = btn.dataset.amount;
+                const tab = btn.dataset.tab;
+                this.switchAuthTab(tab);
             });
         });
 
-        // Clear form
+        // Auth forms
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleLogin();
+        });
+
+        document.getElementById('register-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleRegister();
+        });
+
+        document.getElementById('google-login').addEventListener('click', () => {
+            this.handleGoogleLogin();
+        });
+
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const section = item.dataset.section;
+                this.showSection(section);
+                this.setActiveNav(item);
+            });
+        });
+
+        // Logo click
+        document.getElementById('home-btn').addEventListener('click', () => {
+            this.showSection('dashboard');
+            this.setActiveNav(document.querySelector('[data-section="dashboard"]'));
+        });
+
+        // Logout buttons
+        document.getElementById('logout-btn').addEventListener('click', () => this.logout());
+        document.getElementById('logout-settings')?.addEventListener('click', () => this.logout());
+
+        // Quick actions
+        document.getElementById('add-expense-quick').addEventListener('click', () => {
+            this.showSection('add-expense');
+            this.setActiveNav(document.querySelector('[data-section="add-expense"]'));
+        });
+
+        // Expense form
+        document.getElementById('expense-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addExpense();
+        });
+
         document.getElementById('clear-form').addEventListener('click', () => {
             this.clearExpenseForm();
+        });
+
+        // Quick amount buttons
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('expense-amount').value = btn.dataset.amount;
+            });
         });
 
         // Export data
@@ -175,107 +189,75 @@ class StudySpendPro {
             this.exportExpenses();
         });
 
-        // Sync now button
-        document.getElementById('sync-now').addEventListener('click', () => {
-            this.showNotification('Data is automatically synced in real-time!', 'info');
-        });
-
-        // Search and filters
-        document.getElementById('history-search').addEventListener('input', (e) => {
+        // History filters
+        document.getElementById('search-expenses').addEventListener('input', () => {
             this.filterExpenses();
         });
 
-        document.getElementById('history-category-filter').addEventListener('change', () => {
+        document.getElementById('filter-category').addEventListener('change', () => {
             this.filterExpenses();
         });
 
-        document.getElementById('history-date-from').addEventListener('change', () => {
+        document.getElementById('filter-date-from').addEventListener('change', () => {
             this.filterExpenses();
         });
 
-        document.getElementById('history-date-to').addEventListener('change', () => {
+        document.getElementById('filter-date-to').addEventListener('change', () => {
             this.filterExpenses();
+        });
+
+        // View all buttons
+        document.querySelectorAll('.view-all-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const section = btn.dataset.section || btn.getAttribute('data-section');
+                if (section) {
+                    this.showSection(section);
+                    this.setActiveNav(document.querySelector(`[data-section="${section}"]`));
+                }
+            });
+        });
+
+        // Add first expense buttons
+        document.querySelectorAll('[data-section="add-expense"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.showSection('add-expense');
+                this.setActiveNav(document.querySelector('[data-section="add-expense"]'));
+            });
         });
 
         // Set today's date
         this.setTodaysDate();
     }
 
-    setupNavigation() {
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const section = link.dataset.section;
-                this.showSection(section);
-                
-                // Update active nav
-                navLinks.forEach(nav => nav.classList.remove('active'));
-                link.classList.add('active');
-                
-                // Update URL
-                window.history.pushState(null, null, `#${section}`);
-            });
-        });
-
-        // Handle logo click
-        document.querySelector('.logo-container').addEventListener('click', () => {
-            this.showSection('dashboard');
-            navLinks.forEach(nav => nav.classList.remove('active'));
-            document.querySelector('[data-section="dashboard"]').classList.add('active');
-        });
-
-        // Handle initial hash
-        const hash = window.location.hash.slice(1);
-        if (hash) {
-            this.showSection(hash);
-            const targetNav = document.querySelector(`[data-section="${hash}"]`);
-            if (targetNav) {
-                navLinks.forEach(nav => nav.classList.remove('active'));
-                targetNav.classList.add('active');
-            }
-        }
-    }
-
-    showSection(sectionName) {
-        // Hide all sections
-        document.querySelectorAll('.content-section').forEach(section => {
-            section.classList.remove('active');
-        });
+    switchAuthTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
         
-        // Show target section
-        const targetSection = document.getElementById(sectionName);
-        if (targetSection) {
-            targetSection.classList.add('active');
-        }
-
-        // Update dashboard when showing dashboard
-        if (sectionName === 'dashboard') {
-            this.updateDashboard();
-        }
+        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+        document.getElementById(`${tab}-form`).classList.add('active');
     }
 
     async handleLogin() {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
-        const loginBtn = document.querySelector('#login-form .auth-btn');
+        const btn = document.querySelector('#login-form .auth-btn');
         
         try {
-            loginBtn.classList.add('loading');
-            await window.firebase.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+            this.setButtonLoading(btn, true);
+            await window.firebase.signInWithEmailAndPassword(window.firebase.auth, email, password);
         } catch (error) {
             this.showNotification(this.getFirebaseErrorMessage(error), 'error');
         } finally {
-            loginBtn.classList.remove('loading');
+            this.setButtonLoading(btn, false);
         }
     }
 
     async handleRegister() {
-        const username = document.getElementById('register-username').value;
+        const name = document.getElementById('register-name').value;
         const email = document.getElementById('register-email').value;
         const password = document.getElementById('register-password').value;
         const confirmPassword = document.getElementById('register-confirm').value;
-        const registerBtn = document.querySelector('#register-form .auth-btn');
+        const btn = document.querySelector('#register-form .auth-btn');
         
         if (password !== confirmPassword) {
             this.showNotification('Passwords do not match!', 'error');
@@ -288,33 +270,34 @@ class StudySpendPro {
         }
         
         try {
-            registerBtn.classList.add('loading');
-            const userCredential = await window.firebase.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+            this.setButtonLoading(btn, true);
+            const userCredential = await window.firebase.createUserWithEmailAndPassword(window.firebase.auth, email, password);
             
-            // Update user profile
             await window.firebase.updateProfile(userCredential.user, {
-                displayName: username
+                displayName: name
             });
             
             this.showNotification('Account created successfully!', 'success');
         } catch (error) {
             this.showNotification(this.getFirebaseErrorMessage(error), 'error');
         } finally {
-            registerBtn.classList.remove('loading');
+            this.setButtonLoading(btn, false);
         }
     }
 
     async handleGoogleLogin() {
-        const googleBtn = document.getElementById('google-login');
+        const btn = document.getElementById('google-login');
         
         try {
-            googleBtn.classList.add('loading');
+            this.setButtonLoading(btn, true);
             const provider = new window.firebase.GoogleAuthProvider();
-            await window.firebase.signInWithPopup(window.firebaseAuth, provider);
+            await window.firebase.signInWithPopup(window.firebase.auth, provider);
         } catch (error) {
-            this.showNotification(this.getFirebaseErrorMessage(error), 'error');
+            if (error.code !== 'auth/popup-closed-by-user') {
+                this.showNotification(this.getFirebaseErrorMessage(error), 'error');
+            }
         } finally {
-            googleBtn.classList.remove('loading');
+            this.setButtonLoading(btn, false);
         }
     }
 
@@ -323,7 +306,7 @@ class StudySpendPro {
             if (this.unsubscribeExpenses) {
                 this.unsubscribeExpenses();
             }
-            await window.firebase.signOut(window.firebaseAuth);
+            await window.firebase.signOut(window.firebase.auth);
             this.expenses = [];
             this.showNotification('Signed out successfully!', 'success');
         } catch (error) {
@@ -331,16 +314,38 @@ class StudySpendPro {
         }
     }
 
+    showSection(sectionId) {
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
+
+        if (sectionId === 'dashboard') {
+            this.updateDashboard();
+        } else if (sectionId === 'history') {
+            this.displayExpenseHistory();
+        }
+    }
+
+    setActiveNav(activeItem) {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        activeItem.classList.add('active');
+    }
+
     loadUserExpenses() {
         if (!this.currentUser) return;
         
-        // Unsubscribe from previous listener
         if (this.unsubscribeExpenses) {
             this.unsubscribeExpenses();
         }
         
-        // Set up real-time listener for expenses
-        const expensesRef = window.firebase.collection(window.firebaseDB, 'users', this.currentUser.uid, 'expenses');
+        const expensesRef = window.firebase.collection(window.firebase.db, 'users', this.currentUser.uid, 'expenses');
         const q = window.firebase.query(expensesRef, window.firebase.orderBy('timestamp', 'desc'));
         
         this.updateSyncStatus('syncing');
@@ -371,7 +376,7 @@ class StudySpendPro {
         const category = document.getElementById('expense-category').value;
         const date = document.getElementById('expense-date').value;
         const notes = document.getElementById('expense-notes').value;
-        const addBtn = document.getElementById('add-expense-btn');
+        const btn = document.querySelector('#expense-form .primary-btn');
         
         if (!description || !amount || !category || !date) {
             this.showNotification('Please fill in all required fields!', 'error');
@@ -379,7 +384,7 @@ class StudySpendPro {
         }
         
         try {
-            addBtn.classList.add('loading');
+            this.setButtonLoading(btn, true);
             this.updateSyncStatus('syncing');
             
             const expenseData = {
@@ -392,18 +397,19 @@ class StudySpendPro {
                 userId: this.currentUser.uid
             };
             
-            const expensesRef = window.firebase.collection(window.firebaseDB, 'users', this.currentUser.uid, 'expenses');
+            const expensesRef = window.firebase.collection(window.firebase.db, 'users', this.currentUser.uid, 'expenses');
             await window.firebase.addDoc(expensesRef, expenseData);
             
             this.clearExpenseForm();
             this.showNotification(`Expense of ₹${amount} added successfully!`, 'success');
             this.showSection('dashboard');
+            this.setActiveNav(document.querySelector('[data-section="dashboard"]'));
             
         } catch (error) {
             console.error('Error adding expense:', error);
             this.showNotification('Error adding expense. Please try again.', 'error');
         } finally {
-            addBtn.classList.remove('loading');
+            this.setButtonLoading(btn, false);
         }
     }
 
@@ -424,7 +430,7 @@ class StudySpendPro {
         }
         
         const totalSpent = this.expenses.reduce((sum, expense) => sum + expense.amount, 0);
-        const budget = 10000; // You can make this dynamic later
+        const budget = 10000;
         const remaining = Math.max(0, budget - totalSpent);
         const progressPercentage = Math.min((totalSpent / budget) * 100, 100);
         
@@ -441,88 +447,87 @@ class StudySpendPro {
             return expenseDate >= weekStart;
         });
         const weekTotal = weekExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-        const dailyAvg = weekTotal / 7;
+        const dailyAvg = weekExpenses.length > 0 ? weekTotal / 7 : 0;
         
-        // Update dashboard cards
-        document.getElementById('current-total').textContent = totalSpent.toFixed(0);
-        document.getElementById('current-limit').textContent = budget.toFixed(0);
-        document.getElementById('remaining-amount').textContent = remaining.toFixed(0);
-        document.getElementById('today-total').textContent = todayTotal.toFixed(0);
-        document.getElementById('today-count').textContent = todayExpenses.length;
-        document.getElementById('week-total').textContent = weekTotal.toFixed(0);
+        // Update dashboard
+        document.getElementById('total-spending').textContent = totalSpent.toFixed(0);
+        document.getElementById('total-budget').textContent = budget.toFixed(0);
+        document.getElementById('remaining-budget').textContent = remaining.toFixed(0);
+        document.getElementById('today-spending').textContent = todayTotal.toFixed(0);
+        document.getElementById('today-transactions').textContent = todayExpenses.length;
+        document.getElementById('week-spending').textContent = weekTotal.toFixed(0);
         document.getElementById('daily-avg').textContent = dailyAvg.toFixed(0);
         
         // Update progress bar
         const progressBar = document.getElementById('spending-progress');
         progressBar.style.width = `${progressPercentage}%`;
         
+        // Calculate days left (assuming 30-day period)
+        const periodStart = new Date();
+        periodStart.setDate(1); // First day of month
+        const periodEnd = new Date(periodStart.getFullYear(), periodStart.getMonth() + 1, 0);
+        const today_date = new Date();
+        const daysLeft = Math.max(0, Math.ceil((periodEnd - today_date) / (1000 * 60 * 60 * 24)));
+        document.getElementById('days-left').textContent = daysLeft;
+        
         this.displayRecentActivity();
     }
 
     showEmptyDashboard() {
-        document.getElementById('current-total').textContent = '0';
-        document.getElementById('remaining-amount').textContent = '10000';
-        document.getElementById('today-total').textContent = '0';
-        document.getElementById('today-count').textContent = '0';
-        document.getElementById('week-total').textContent = '0';
+        document.getElementById('total-spending').textContent = '0';
+        document.getElementById('remaining-budget').textContent = '10,000';
+        document.getElementById('today-spending').textContent = '0';
+        document.getElementById('today-transactions').textContent = '0';
+        document.getElementById('week-spending').textContent = '0';
         document.getElementById('daily-avg').textContent = '0';
         document.getElementById('spending-progress').style.width = '0%';
-        
-        document.getElementById('recent-activity-list').innerHTML = `
-            <div class="no-activity">
-                <i class="fas fa-receipt"></i>
-                <p>No expenses added yet</p>
-                <button class="premium-btn" onclick="app.showSection('add-expense')">Add First Expense</button>
-            </div>
-        `;
+        document.getElementById('days-left').textContent = '30';
     }
 
     displayRecentActivity() {
-        const recentExpenses = this.expenses.slice(0, 5);
-        const container = document.getElementById('recent-activity-list');
+        const container = document.getElementById('recent-activities');
+        const recent = this.expenses.slice(0, 5);
         
-        if (recentExpenses.length === 0) {
-            this.showEmptyDashboard();
+        if (recent.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <h4>No expenses yet</h4>
+                    <p>Start tracking your expenses to see them here</p>
+                    <button class="premium-btn primary-btn" data-section="add-expense">Add First Expense</button>
+                </div>
+            `;
+            
+            // Re-attach event listener
+            container.querySelector('[data-section="add-expense"]').addEventListener('click', () => {
+                this.showSection('add-expense');
+                this.setActiveNav(document.querySelector('[data-section="add-expense"]'));
+            });
             return;
         }
         
-        container.innerHTML = recentExpenses.map(expense => `
-            <div class="expense-item">
-                <div class="expense-item-left">
-                    <div class="expense-item-title">${expense.description}</div>
-                    <div class="expense-item-meta">
-                        <span class="category-badge category-${expense.category}">${expense.category}</span>
-                        <span>${this.formatDate(expense.date)}</span>
+        container.innerHTML = recent.map(expense => `
+            <div class="expense-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--glass-border);">
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 4px;">${expense.description}</div>
+                    <div style="font-size: 0.85rem; opacity: 0.7;">
+                        ${this.getCategoryEmoji(expense.category)} ${expense.category} • ${this.formatDate(expense.date)}
                     </div>
                 </div>
-                <div class="expense-item-amount">₹${expense.amount.toFixed(0)}</div>
+                <div style="font-weight: 700; font-size: 1.1rem;">₹${expense.amount.toFixed(0)}</div>
             </div>
         `).join('');
     }
 
     displayExpenseHistory() {
-        const container = document.getElementById('expenses-list');
-        
-        if (this.expenses.length === 0) {
-            container.innerHTML = `
-                <div class="no-activity">
-                    <i class="fas fa-receipt"></i>
-                    <h3>No expenses found</h3>
-                    <p>Start adding expenses to see your history here</p>
-                    <button class="premium-btn" onclick="app.showSection('add-expense')">Add First Expense</button>
-                </div>
-            `;
-            return;
-        }
-        
         this.filterExpenses();
     }
 
     filterExpenses() {
-        const searchTerm = document.getElementById('history-search').value.toLowerCase();
-        const categoryFilter = document.getElementById('history-category-filter').value;
-        const dateFrom = document.getElementById('history-date-from').value;
-        const dateTo = document.getElementById('history-date-to').value;
+        const searchTerm = document.getElementById('search-expenses').value.toLowerCase();
+        const categoryFilter = document.getElementById('filter-category').value;
+        const dateFrom = document.getElementById('filter-date-from').value;
+        const dateTo = document.getElementById('filter-date-to').value;
         
         let filteredExpenses = this.expenses.filter(expense => {
             const matchesSearch = expense.description.toLowerCase().includes(searchTerm) ||
@@ -538,23 +543,35 @@ class StudySpendPro {
         const totalAmount = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
         const averageAmount = filteredExpenses.length > 0 ? totalAmount / filteredExpenses.length : 0;
         
-        document.getElementById('filtered-total').textContent = `₹${totalAmount.toFixed(0)}`;
-        document.getElementById('filtered-count').textContent = filteredExpenses.length;
-        document.getElementById('filtered-average').textContent = `₹${averageAmount.toFixed(0)}`;
+        document.getElementById('summary-total').textContent = `₹${totalAmount.toFixed(0)}`;
+        document.getElementById('summary-count').textContent = filteredExpenses.length;
+        document.getElementById('summary-average').textContent = `₹${averageAmount.toFixed(0)}`;
         
-        // Display filtered expenses
+        // Display expenses
         const container = document.getElementById('expenses-list');
+        
+        if (filteredExpenses.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <h4>No expenses found</h4>
+                    <p>Try adjusting your search filters</p>
+                </div>
+            `;
+            return;
+        }
+        
         container.innerHTML = filteredExpenses.map(expense => `
-            <div class="expense-item">
-                <div class="expense-item-left">
-                    <div class="expense-item-title">${expense.description}</div>
-                    <div class="expense-item-meta">
-                        <span class="category-badge category-${expense.category}">${expense.category}</span>
+            <div class="expense-item" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; margin-bottom: 12px; background: var(--glass-bg); border-radius: 12px; border: 1px solid var(--glass-border);">
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; margin-bottom: 4px;">${expense.description}</div>
+                    <div style="font-size: 0.85rem; opacity: 0.7; display: flex; gap: 12px;">
+                        <span>${this.getCategoryEmoji(expense.category)} ${expense.category}</span>
                         <span>${this.formatDate(expense.date)}</span>
                         ${expense.notes ? `<span>${expense.notes}</span>` : ''}
                     </div>
                 </div>
-                <div class="expense-item-amount">₹${expense.amount.toFixed(0)}</div>
+                <div style="font-weight: 700; font-size: 1.2rem;">₹${expense.amount.toFixed(0)}</div>
             </div>
         `).join('');
     }
@@ -591,27 +608,19 @@ class StudySpendPro {
         return [headers, ...rows].join('\n');
     }
 
-    updateSyncStatus(status) {
-        const syncElement = document.getElementById('sync-status');
-        const syncIcon = syncElement.querySelector('i');
-        const syncText = syncElement.querySelector('span');
-        
-        syncElement.className = `sync-status ${status}`;
-        
-        switch (status) {
-            case 'syncing':
-                syncIcon.className = 'fas fa-sync-alt fa-spin';
-                syncText.textContent = 'Syncing...';
-                break;
-            case 'synced':
-                syncIcon.className = 'fas fa-cloud-upload-alt';
-                syncText.textContent = 'Synced';
-                break;
-            case 'offline':
-                syncIcon.className = 'fas fa-wifi-slash';
-                syncText.textContent = 'Offline';
-                break;
-        }
+    getCategoryEmoji(category) {
+        const emojis = {
+            'Food': '🍽️',
+            'Transport': '🚌',
+            'Education': '📚',
+            'Entertainment': '🎬',
+            'Health': '💊',
+            'Shopping': '🛍️',
+            'Personal': '👤',
+            'Emergency': '🚨',
+            'Other': '📋'
+        };
+        return emojis[category] || '📋';
     }
 
     formatDate(dateString) {
@@ -621,6 +630,45 @@ class StudySpendPro {
             month: 'short', 
             year: 'numeric' 
         });
+    }
+
+    updateSyncStatus(status) {
+        const syncElement = document.getElementById('sync-status');
+        if (!syncElement) return;
+        
+        const icon = syncElement.querySelector('i');
+        const text = syncElement.childNodes[1];
+        
+        switch (status) {
+            case 'syncing':
+                icon.className = 'fas fa-sync-alt fa-spin';
+                text.textContent = ' Syncing...';
+                break;
+            case 'synced':
+                icon.className = 'fas fa-cloud-upload-alt';
+                text.textContent = ' Synced';
+                break;
+            case 'offline':
+                icon.className = 'fas fa-wifi-slash';
+                text.textContent = ' Offline';
+                break;
+        }
+    }
+
+    setButtonLoading(button, loading) {
+        if (loading) {
+            button.disabled = true;
+            button.style.opacity = '0.7';
+            const originalText = button.innerHTML;
+            button.dataset.originalText = originalText;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        } else {
+            button.disabled = false;
+            button.style.opacity = '1';
+            if (button.dataset.originalText) {
+                button.innerHTML = button.dataset.originalText;
+            }
+        }
     }
 
     getFirebaseErrorMessage(error) {
@@ -643,32 +691,41 @@ class StudySpendPro {
     }
 
     showNotification(message, type = 'info') {
-        const container = document.getElementById('notification-container');
+        const container = document.getElementById('notifications');
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.textContent = message;
         
         container.appendChild(notification);
         
-        // Trigger animation
         setTimeout(() => notification.classList.add('show'), 100);
         
-        // Auto remove
         setTimeout(() => {
             notification.classList.remove('show');
-            setTimeout(() => container.removeChild(notification), 300);
+            setTimeout(() => {
+                if (container.contains(notification)) {
+                    container.removeChild(notification);
+                }
+            }, 300);
         }, 3000);
     }
 }
 
+// Add CSS for fadeOut animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+
 // Initialize app
 let app;
 document.addEventListener('DOMContentLoaded', () => {
-    // Wait a bit for Firebase to load
     setTimeout(() => {
         app = new StudySpendPro();
+        window.app = app;
     }, 500);
 });
-
-// Make functions globally available
-window.app = app;
