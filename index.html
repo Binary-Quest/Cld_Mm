@@ -7,9 +7,10 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- Animated Splash Screen -->
+    <!-- Splash Screen -->
     <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
             <div class="logo-animation">
@@ -30,16 +31,9 @@
                 <span></span>
             </div>
         </div>
-        <div class="splash-particles">
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-        </div>
     </div>
 
-    <!-- Login/Register Screen -->
+    <!-- Auth Screen -->
     <div id="auth-screen" class="auth-screen hidden">
         <div class="auth-container">
             <div class="auth-header">
@@ -48,10 +42,6 @@
                 </div>
                 <h2 class="auth-title">Welcome to StudySpend Pro</h2>
                 <p class="auth-subtitle">Smart Expense Management for Students</p>
-                <div class="cloud-badge">
-                    <i class="fas fa-cloud"></i>
-                    <span>Cloud Synced</span>
-                </div>
             </div>
 
             <div class="auth-tabs">
@@ -66,19 +56,16 @@
             </div>
 
             <div class="auth-forms">
-                <!-- Login Form -->
                 <form id="login-form" class="auth-form active">
                     <div class="input-group">
                         <input type="email" id="login-email" required>
                         <label for="login-email">Email Address</label>
                         <i class="fas fa-envelope input-icon"></i>
-                        <div class="input-line"></div>
                     </div>
                     <div class="input-group">
                         <input type="password" id="login-password" required>
                         <label for="login-password">Password</label>
                         <i class="fas fa-lock input-icon"></i>
-                        <div class="input-line"></div>
                     </div>
                     <button type="submit" class="auth-btn primary-btn">
                         <span>Login to Account</span>
@@ -86,31 +73,26 @@
                     </button>
                 </form>
 
-                <!-- Register Form -->
                 <form id="register-form" class="auth-form">
                     <div class="input-group">
                         <input type="text" id="register-name" required>
                         <label for="register-name">Full Name</label>
                         <i class="fas fa-user input-icon"></i>
-                        <div class="input-line"></div>
                     </div>
                     <div class="input-group">
                         <input type="email" id="register-email" required>
                         <label for="register-email">Email Address</label>
                         <i class="fas fa-envelope input-icon"></i>
-                        <div class="input-line"></div>
                     </div>
                     <div class="input-group">
                         <input type="password" id="register-password" required minlength="6">
                         <label for="register-password">Password</label>
                         <i class="fas fa-lock input-icon"></i>
-                        <div class="input-line"></div>
                     </div>
                     <div class="input-group">
                         <input type="password" id="register-confirm" required minlength="6">
                         <label for="register-confirm">Confirm Password</label>
                         <i class="fas fa-lock input-icon"></i>
-                        <div class="input-line"></div>
                     </div>
                     <button type="submit" class="auth-btn primary-btn">
                         <span>Create Account</span>
@@ -158,6 +140,34 @@
                     </div>
                     <button class="logout-btn" id="logout-btn">
                         <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Period Control -->
+            <div class="period-control">
+                <div class="current-period">
+                    <div class="period-info">
+                        <span class="period-label">Current Period</span>
+                        <span class="period-value" id="current-period-display">30 Days</span>
+                    </div>
+                    <div class="period-actions">
+                        <button class="period-btn" id="period-settings-btn" title="Period Settings">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                        <button class="period-btn" id="reset-month-btn" title="Reset Month">
+                            <i class="fas fa-refresh"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="month-navigation">
+                    <button class="nav-btn" id="prev-month-btn" title="Previous Month">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="current-month" id="current-month-display">September 2025</span>
+                    <button class="nav-btn" id="next-month-btn" title="Next Month">
+                        <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
             </div>
@@ -220,9 +230,6 @@
                             <div class="card-icon">
                                 <i class="fas fa-wallet"></i>
                             </div>
-                            <div class="card-menu">
-                                <i class="fas fa-ellipsis-h"></i>
-                            </div>
                         </div>
                         <div class="card-content">
                             <h3>Total Spending</h3>
@@ -267,9 +274,9 @@
                             </div>
                         </div>
                         <div class="card-content">
-                            <h3>This Week</h3>
-                            <div class="amount">₹<span id="week-spending">0</span></div>
-                            <p class="card-footer">Avg: ₹<span id="daily-avg">0</span>/day</p>
+                            <h3>Daily Average</h3>
+                            <div class="amount">₹<span id="daily-average">0</span></div>
+                            <p class="card-footer">based on current period</p>
                         </div>
                     </div>
                 </div>
@@ -309,12 +316,12 @@
                         <div class="form-row">
                             <div class="input-group">
                                 <input type="text" id="expense-description" required>
-                                <label>Description</label>
+                                <label for="expense-description">Description</label>
                                 <i class="fas fa-edit input-icon"></i>
                             </div>
                             <div class="input-group">
                                 <input type="number" id="expense-amount" required min="0" step="0.01">
-                                <label>Amount (₹)</label>
+                                <label for="expense-amount">Amount (₹)</label>
                                 <i class="fas fa-rupee-sign input-icon"></i>
                             </div>
                         </div>
@@ -333,19 +340,19 @@
                                     <option value="Emergency">🚨 Emergency</option>
                                     <option value="Other">📋 Other</option>
                                 </select>
-                                <label>Category</label>
+                                <label for="expense-category">Category</label>
                                 <i class="fas fa-tags input-icon"></i>
                             </div>
                             <div class="input-group">
                                 <input type="date" id="expense-date" required>
-                                <label>Date</label>
+                                <label for="expense-date">Date</label>
                                 <i class="fas fa-calendar input-icon"></i>
                             </div>
                         </div>
 
                         <div class="input-group">
                             <textarea id="expense-notes" rows="3"></textarea>
-                            <label>Notes (Optional)</label>
+                            <label for="expense-notes">Notes (Optional)</label>
                             <i class="fas fa-sticky-note input-icon"></i>
                         </div>
 
@@ -363,139 +370,396 @@
                 </div>
             </section>
 
+            <!-- Recurring Bills Section -->
+            <section id="recurring-bills" class="content-section">
+                <div class="section-header">
+                    <h1 class="section-title">Recurring Bills</h1>
+                    <p class="section-subtitle">Manage your monthly subscriptions and bills</p>
+                    <button class="premium-btn" id="add-bill-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Bill</span>
+                    </button>
+                </div>
+
+                <div class="bills-container" id="bills-container">
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h4>No Recurring Bills</h4>
+                        <p>Add your monthly subscriptions and bills</p>
+                        <button class="premium-btn" id="add-first-bill">Add First Bill</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Budget Limits Section -->
+            <section id="budget-limits" class="content-section">
+                <div class="section-header">
+                    <h1 class="section-title">Budget Management</h1>
+                    <p class="section-subtitle">Set and manage your spending limits</p>
+                </div>
+
+                <div class="budget-container">
+                    <div class="budget-card">
+                        <div class="card-header">
+                            <h3>Monthly Budget</h3>
+                            <button class="edit-btn" id="edit-budget-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                        <div class="budget-display">
+                            <div class="current-budget">
+                                <span class="budget-amount">₹<span id="current-budget-display">10,000</span></span>
+                                <span class="budget-label">Current Budget</span>
+                            </div>
+                            <div class="budget-period">
+                                <span class="period-duration" id="budget-period-display">30 days</span>
+                                <span class="period-label">Period Duration</span>
+                            </div>
+                        </div>
+                        
+                        <div class="budget-edit" id="budget-edit" style="display: none;">
+                            <div class="input-group">
+                                <input type="number" id="new-budget-amount" min="100" step="100">
+                                <label for="new-budget-amount">Budget Amount (₹)</label>
+                            </div>
+                            <div class="input-group">
+                                <input type="number" id="new-budget-duration" min="1" max="31">
+                                <label for="new-budget-duration">Duration (Days)</label>
+                            </div>
+                            <div class="form-actions">
+                                <button class="premium-btn secondary-btn" id="cancel-budget-edit">Cancel</button>
+                                <button class="premium-btn primary-btn" id="save-budget">Save Budget</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="category-budgets">
+                        <div class="card-header">
+                            <h3>Category Limits</h3>
+                            <button class="premium-btn secondary-btn" id="add-category-budget">
+                                <i class="fas fa-plus"></i>
+                                <span>Add Limit</span>
+                            </button>
+                        </div>
+                        <div class="category-budget-list" id="category-budget-list">
+                            <div class="empty-state">
+                                <p>No category limits set</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics" class="content-section">
+                <div class="section-header">
+                    <h1 class="section-title">Analytics Dashboard</h1>
+                    <p class="section-subtitle">Insights into your spending patterns</p>
+                    <div class="analytics-controls">
+                        <select id="analytics-period">
+                            <option value="daily">Daily</option>
+                            <option value="monthly" selected>Monthly</option>
+                            <option value="6months">6 Months</option>
+                            <option value="yearly">Yearly</option>
+                            <option value="total">All Time</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="analytics-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Spending Trends</h3>
+                            <span class="chart-info" id="trends-info">Last 30 days</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="trendsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Category Distribution</h3>
+                            <span class="chart-info" id="category-info">Current period</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Daily Breakdown</h3>
+                            <span class="chart-info" id="daily-info">This month</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="dailyChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Monthly Comparison</h3>
+                            <span class="chart-info" id="comparison-info">Last 6 months</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="insights-section">
+                    <h3>Smart Insights</h3>
+                    <div class="insights-grid" id="insights-container">
+                        <!-- Insights will be populated here -->
+                    </div>
+                </div>
+            </section>
+
             <!-- History Section -->
             <section id="history" class="content-section">
                 <div class="section-header">
                     <h1 class="section-title">Expense History</h1>
                     <p class="section-subtitle">View and manage all your expenses</p>
-                    <button class="premium-btn secondary-btn" id="export-data">
-                        <i class="fas fa-download"></i>
-                        <span>Export</span>
-                    </button>
-                </div>
-
-                <div class="history-filters">
-                    <div class="filter-group">
-                        <input type="text" id="search-expenses" placeholder="Search expenses...">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <div class="filter-group">
-                        <select id="filter-category">
-                            <option value="">All Categories</option>
-                            <option value="Food">Food & Dining</option>
-                            <option value="Transport">Transportation</option>
-                            <option value="Education">Education</option>
-                            <option value="Entertainment">Entertainment</option>
-                            <option value="Health">Health & Medical</option>
-                            <option value="Shopping">Shopping</option>
-                            <option value="Personal">Personal Care</option>
-                            <option value="Emergency">Emergency</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <input type="date" id="filter-date-from">
-                    </div>
-                    <div class="filter-group">
-                        <input type="date" id="filter-date-to">
+                    <div class="history-actions">
+                        <button class="premium-btn secondary-btn" id="export-data">
+                            <i class="fas fa-download"></i>
+                            <span>Export</span>
+                        </button>
+                        <button class="premium-btn danger-btn" id="delete-month-data">
+                            <i class="fas fa-trash"></i>
+                            <span>Delete Month</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="expenses-summary">
-                    <div class="summary-item">
-                        <span class="summary-label">Total Amount</span>
-                        <span class="summary-value" id="summary-total">₹0</span>
+                <div class="history-interface">
+                    <div class="history-filters">
+                        <div class="filter-group">
+                            <input type="text" id="search-expenses" placeholder="Search expenses...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="filter-group">
+                            <select id="filter-category">
+                                <option value="">All Categories</option>
+                                <option value="Food">Food & Dining</option>
+                                <option value="Transport">Transportation</option>
+                                <option value="Education">Education</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Health">Health & Medical</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Personal">Personal Care</option>
+                                <option value="Emergency">Emergency</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <input type="date" id="filter-date-from">
+                        </div>
+                        <div class="filter-group">
+                            <input type="date" id="filter-date-to">
+                        </div>
                     </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Transactions</span>
-                        <span class="summary-value" id="summary-count">0</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Average</span>
-                        <span class="summary-value" id="summary-average">₹0</span>
-                    </div>
-                </div>
 
-                <div class="expenses-list" id="expenses-list">
-                    <div class="empty-state">
-                        <i class="fas fa-receipt"></i>
-                        <h4>No expenses found</h4>
-                        <p>Start adding expenses to see your history</p>
+                    <div class="expenses-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Total Amount</span>
+                            <span class="summary-value" id="summary-total">₹0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Transactions</span>
+                            <span class="summary-value" id="summary-count">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Average</span>
+                            <span class="summary-value" id="summary-average">₹0</span>
+                        </div>
+                    </div>
+
+                    <div class="expenses-list" id="expenses-list">
+                        <div class="empty-state">
+                            <i class="fas fa-receipt"></i>
+                            <h4>No expenses found</h4>
+                            <p>Start adding expenses to see your history</p>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Other Sections (Placeholder) -->
-            <section id="recurring-bills" class="content-section">
-                <div class="section-header">
-                    <h1 class="section-title">Recurring Bills</h1>
-                    <p class="section-subtitle">Manage your monthly subscriptions</p>
-                </div>
-                <div class="coming-soon">
-                    <i class="fas fa-calendar-alt"></i>
-                    <h3>Coming Soon</h3>
-                    <p>Recurring bills feature will be available in the next update</p>
-                </div>
-            </section>
-
-            <section id="budget-limits" class="content-section">
-                <div class="section-header">
-                    <h1 class="section-title">Budget Limits</h1>
-                    <p class="section-subtitle">Set spending limits for categories</p>
-                </div>
-                <div class="coming-soon">
-                    <i class="fas fa-chart-line"></i>
-                    <h3>Coming Soon</h3>
-                    <p>Budget management will be available in the next update</p>
-                </div>
-            </section>
-
-            <section id="analytics" class="content-section">
-                <div class="section-header">
-                    <h1 class="section-title">Analytics</h1>
-                    <p class="section-subtitle">Insights into your spending patterns</p>
-                </div>
-                <div class="coming-soon">
-                    <i class="fas fa-chart-pie"></i>
-                    <h3>Coming Soon</h3>
-                    <p>Advanced analytics will be available in the next update</p>
-                </div>
-            </section>
-
+            <!-- Settings Section -->
             <section id="settings" class="content-section">
                 <div class="section-header">
                     <h1 class="section-title">Settings</h1>
                     <p class="section-subtitle">Customize your experience</p>
                 </div>
+
                 <div class="settings-grid">
                     <div class="settings-card">
-                        <h3>Account</h3>
-                        <div class="setting-item">
-                            <label>Email</label>
-                            <input type="email" id="user-email" readonly>
+                        <div class="card-header">
+                            <h3>Account Information</h3>
                         </div>
-                        <div class="setting-item">
-                            <label>Name</label>
-                            <input type="text" id="user-display-name" readonly>
+                        <div class="card-content">
+                            <div class="input-group">
+                                <input type="email" id="settings-email" readonly>
+                                <label for="settings-email">Email Address</label>
+                                <i class="fas fa-envelope input-icon"></i>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" id="settings-name" readonly>
+                                <label for="settings-name">Full Name</label>
+                                <i class="fas fa-user input-icon"></i>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" id="settings-joined" readonly>
+                                <label for="settings-joined">Member Since</label>
+                                <i class="fas fa-calendar input-icon"></i>
+                            </div>
+                            <button class="premium-btn danger-btn" id="logout-settings">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Sign Out</span>
+                            </button>
                         </div>
-                        <button class="premium-btn danger-btn" id="logout-settings">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Sign Out</span>
-                        </button>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <h3>Preferences</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="input-group">
+                                <select id="currency-setting">
+                                    <option value="INR">₹ Indian Rupee</option>
+                                    <option value="USD">$ US Dollar</option>
+                                    <option value="EUR">€ Euro</option>
+                                </select>
+                                <label for="currency-setting">Currency</label>
+                                <i class="fas fa-coins input-icon"></i>
+                            </div>
+                            <div class="input-group">
+                                <select id="theme-setting">
+                                    <option value="default">Default</option>
+                                    <option value="dark">Dark Mode</option>
+                                    <option value="ocean">Ocean Blue</option>
+                                </select>
+                                <label for="theme-setting">Theme</label>
+                                <i class="fas fa-palette input-icon"></i>
+                            </div>
+                            <button class="premium-btn primary-btn" id="save-preferences">
+                                <i class="fas fa-save"></i>
+                                <span>Save Preferences</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
+    <!-- Period Settings Modal -->
+    <div id="period-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Period Settings</h3>
+                <button class="close-btn" id="close-period-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="number" id="period-duration" min="1" max="31" value="30">
+                    <label for="period-duration">Period Duration (Days)</label>
+                </div>
+                <div class="input-group">
+                    <input type="date" id="period-start-date">
+                    <label for="period-start-date">Start Date</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="premium-btn secondary-btn" id="cancel-period">Cancel</button>
+                <button class="premium-btn primary-btn" id="save-period">Save Period</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Month Modal -->
+    <div id="reset-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reset Current Month</h3>
+                <button class="close-btn" id="close-reset-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="warning-content">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>This will end the current period and start a new one. Your current data will be archived.</p>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="archive-data" checked>
+                            <span class="checkmark"></span>
+                            Archive current data (recommended)
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="premium-btn secondary-btn" id="cancel-reset">Cancel</button>
+                <button class="premium-btn danger-btn" id="confirm-reset">Reset Month</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Bill Modal -->
+    <div id="bill-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Recurring Bill</h3>
+                <button class="close-btn" id="close-bill-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="bill-form">
+                    <div class="input-group">
+                        <input type="text" id="bill-name" required>
+                        <label for="bill-name">Bill Name</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="bill-amount" required min="0" step="0.01">
+                        <label for="bill-amount">Amount (₹)</label>
+                    </div>
+                    <div class="input-group">
+                        <select id="bill-frequency" required>
+                            <option value="">Select Frequency</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                        <label for="bill-frequency">Frequency</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="date" id="bill-next-due" required>
+                        <label for="bill-next-due">Next Due Date</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="premium-btn secondary-btn" id="cancel-bill">Cancel</button>
+                <button class="premium-btn primary-btn" id="save-bill">Add Bill</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Container -->
     <div id="notifications" class="notifications-container"></div>
 
-    <!-- Firebase Configuration -->
+    <!-- Firebase Config -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, where, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyBxoHEnbO2um_po3fOIgct7NsIAkkSipiE",
@@ -512,29 +776,12 @@
         const db = getFirestore(app);
 
         window.firebase = {
-            auth,
-            db,
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword,
-            signInWithPopup,
-            GoogleAuthProvider,
-            signOut,
-            onAuthStateChanged,
-            updateProfile,
-            doc,
-            setDoc,
-            getDoc,
-            collection,
-            addDoc,
-            query,
-            orderBy,
-            onSnapshot,
-            deleteDoc,
-            where,
-            getDocs
+            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+            signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile,
+            doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot,
+            deleteDoc, where, getDocs, updateDoc
         };
 
-        // Initialize app after Firebase is ready
         document.addEventListener('DOMContentLoaded', () => {
             new StudySpendPro();
         });
