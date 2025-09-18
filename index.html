@@ -6,11 +6,32 @@
     <title>StudySpend Pro - Premium Student Expense Tracker</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="logo-animation">
+                <div class="logo-circle">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="logo-rings">
+                    <div class="ring ring-1"></div>
+                    <div class="ring ring-2"></div>
+                    <div class="ring ring-3"></div>
+                </div>
+            </div>
+            <h1 class="loading-title">StudySpend Pro</h1>
+            <p class="loading-subtitle">Connecting to cloud...</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Login Screen -->
-    <div id="login-screen" class="login-screen">
+    <div id="login-screen" class="login-screen" style="display: none;">
         <div class="login-container">
             <div class="login-header">
                 <div class="login-logo">
@@ -18,6 +39,10 @@
                 </div>
                 <h1>StudySpend Pro</h1>
                 <p>Smart Expense Management for Students</p>
+                <div class="sync-badge">
+                    <i class="fas fa-cloud"></i>
+                    <span>Cloud Synced</span>
+                </div>
             </div>
             
             <div class="login-form-container">
@@ -29,9 +54,9 @@
                 <!-- Login Form -->
                 <form id="login-form" class="auth-form active">
                     <div class="form-group">
-                        <input type="text" id="login-username" placeholder=" " required>
-                        <label>Username</label>
-                        <i class="fas fa-user"></i>
+                        <input type="email" id="login-email" placeholder=" " required>
+                        <label>Email</label>
+                        <i class="fas fa-envelope"></i>
                     </div>
                     <div class="form-group">
                         <input type="password" id="login-password" placeholder=" " required>
@@ -48,7 +73,7 @@
                 <form id="register-form" class="auth-form">
                     <div class="form-group">
                         <input type="text" id="register-username" placeholder=" " required>
-                        <label>Username</label>
+                        <label>Full Name</label>
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="form-group">
@@ -57,12 +82,12 @@
                         <i class="fas fa-envelope"></i>
                     </div>
                     <div class="form-group">
-                        <input type="password" id="register-password" placeholder=" " required>
+                        <input type="password" id="register-password" placeholder=" " required minlength="6">
                         <label>Password</label>
                         <i class="fas fa-lock"></i>
                     </div>
                     <div class="form-group">
-                        <input type="password" id="register-confirm" placeholder=" " required>
+                        <input type="password" id="register-confirm" placeholder=" " required minlength="6">
                         <label>Confirm Password</label>
                         <i class="fas fa-lock"></i>
                     </div>
@@ -71,35 +96,16 @@
                         <i class="fas fa-user-plus"></i>
                     </button>
                 </form>
-            </div>
-        </div>
-    </div>
 
-    <!-- Welcome Screen -->
-    <div id="welcome-screen" class="welcome-screen" style="display: none;">
-        <div class="welcome-content">
-            <div class="logo-animation">
-                <div class="logo-circle">
-                    <i class="fas fa-graduation-cap"></i>
+                <div class="divider">
+                    <span>or</span>
                 </div>
-                <div class="logo-rings">
-                    <div class="ring ring-1"></div>
-                    <div class="ring ring-2"></div>
-                    <div class="ring ring-3"></div>
-                </div>
+
+                <button id="google-login" class="google-btn">
+                    <i class="fab fa-google"></i>
+                    <span>Continue with Google</span>
+                </button>
             </div>
-            <h1 class="welcome-title">StudySpend Pro</h1>
-            <p class="welcome-subtitle">Smart Expense Management for Students</p>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
-            </div>
-        </div>
-        <div class="particles">
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
         </div>
     </div>
 
@@ -119,14 +125,19 @@
                 </div>
                 <div class="user-info">
                     <div class="user-avatar">
-                        <i class="fas fa-user"></i>
+                        <img id="user-avatar" src="" alt="Avatar" style="display: none;">
+                        <i class="fas fa-user" id="user-icon"></i>
                     </div>
                     <div class="user-details">
                         <span class="username" id="current-username">User</span>
-                        <button class="logout-btn" onclick="logout()">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
+                        <div class="sync-status" id="sync-status">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Synced</span>
+                        </div>
                     </div>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
                 </div>
             </div>
             
@@ -191,13 +202,13 @@
                         <p class="page-subtitle">Your financial overview at a glance</p>
                     </div>
                     <div class="header-actions">
-                        <button id="enable-notifications" class="premium-btn">
-                            <i class="fas fa-bell"></i>
-                            <span>Smart Reminders</span>
+                        <button id="sync-now" class="premium-btn secondary">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Sync Now</span>
                         </button>
-                        <button onclick="showPeriodModal()" class="premium-btn secondary">
-                            <i class="fas fa-calendar-plus"></i>
-                            <span>New Period</span>
+                        <button onclick="showSection('add-expense')" class="premium-btn">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Expense</span>
                         </button>
                     </div>
                 </div>
@@ -268,7 +279,7 @@
                                     <span class="amount" id="today-total">0</span>
                                 </div>
                                 <div class="info-text">
-                                    Daily avg: ₹<span id="daily-avg">0</span>
+                                    Total entries: <span id="today-count">0</span>
                                 </div>
                             </div>
                         </div>
@@ -282,56 +293,14 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <h3>Spending Rate</h3>
-                                <div class="rate-display">
-                                    <span class="rate-value" id="spending-rate">0</span>
-                                    <span class="rate-unit">%/day</span>
+                                <h3>This Week</h3>
+                                <div class="amount-display">
+                                    <span class="currency">₹</span>
+                                    <span class="amount" id="week-total">0</span>
                                 </div>
                                 <div class="info-text">
-                                    <span id="trend-indicator">↗️ Increasing</span>
+                                    Daily avg: ₹<span id="daily-avg">0</span>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Stats -->
-                <div class="quick-stats">
-                    <div class="stats-header">
-                        <h3>Quick Overview</h3>
-                        <div class="time-period-selector">
-                            <button class="period-btn active" data-period="current">Current Period</button>
-                            <button class="period-btn" data-period="week">This Week</button>
-                            <button class="period-btn" data-period="month">This Month</button>
-                        </div>
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-icon">📊</div>
-                            <div class="stat-content">
-                                <span class="stat-label">Total Expenses</span>
-                                <span class="stat-value" id="stat-total-expenses">₹0</span>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-icon">🍽️</div>
-                            <div class="stat-content">
-                                <span class="stat-label">Top Category</span>
-                                <span class="stat-value" id="stat-top-category">Food</span>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-icon">📅</div>
-                            <div class="stat-content">
-                                <span class="stat-label">Days Active</span>
-                                <span class="stat-value" id="stat-active-days">0</span>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-icon">⚡</div>
-                            <div class="stat-content">
-                                <span class="stat-label">Avg Per Day</span>
-                                <span class="stat-value" id="stat-avg-per-day">₹0</span>
                             </div>
                         </div>
                     </div>
@@ -344,10 +313,15 @@
                         <button class="view-all-btn" onclick="showSection('history')">View All</button>
                     </div>
                     <div class="activity-list" id="recent-activity-list">
-                        <div class="no-activity">
-                            <i class="fas fa-receipt"></i>
-                            <p>No recent activity</p>
-                            <button class="premium-btn" onclick="showSection('add-expense')">Add First Expense</button>
+                        <div class="loading-activity">
+                            <div class="activity-skeleton">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line short"></div>
+                            </div>
+                            <div class="activity-skeleton">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line short"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -366,10 +340,10 @@
                     <div class="form-header">
                         <h3>New Expense Entry</h3>
                         <div class="quick-amounts">
-                            <button class="quick-amount-btn" onclick="setQuickAmount(50)">₹50</button>
-                            <button class="quick-amount-btn" onclick="setQuickAmount(100)">₹100</button>
-                            <button class="quick-amount-btn" onclick="setQuickAmount(200)">₹200</button>
-                            <button class="quick-amount-btn" onclick="setQuickAmount(500)">₹500</button>
+                            <button class="quick-amount-btn" data-amount="50">₹50</button>
+                            <button class="quick-amount-btn" data-amount="100">₹100</button>
+                            <button class="quick-amount-btn" data-amount="200">₹200</button>
+                            <button class="quick-amount-btn" data-amount="500">₹500</button>
                         </div>
                     </div>
                     
@@ -413,138 +387,21 @@
 
                         <div class="form-group floating-label">
                             <textarea id="expense-notes" placeholder=" " rows="3"></textarea>
-                            <label for="expense-notes">Additional Notes</label>
+                            <label for="expense-notes">Additional Notes (Optional)</label>
                             <div class="form-icon"><i class="fas fa-sticky-note"></i></div>
                         </div>
 
                         <div class="form-actions">
-                            <button type="button" class="premium-btn secondary" onclick="clearExpenseForm()">
+                            <button type="button" class="premium-btn secondary" id="clear-form">
                                 <i class="fas fa-times"></i>
                                 <span>Clear</span>
                             </button>
-                            <button type="submit" class="premium-btn primary">
+                            <button type="submit" class="premium-btn primary" id="add-expense-btn">
                                 <i class="fas fa-plus"></i>
                                 <span>Add Expense</span>
                             </button>
                         </div>
                     </form>
-                </div>
-            </section>
-
-            <!-- Recurring Bills Section -->
-            <section id="recurring-bills" class="content-section">
-                <div class="section-header">
-                    <div class="header-content">
-                        <h1 class="page-title">Recurring Bills</h1>
-                        <p class="page-subtitle">Manage your monthly subscriptions and bills</p>
-                    </div>
-                    <div class="header-actions">
-                        <button class="premium-btn" onclick="showAddBillModal()">
-                            <i class="fas fa-plus"></i>
-                            <span>Add Bill</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bills-container" id="bills-container">
-                    <div class="no-bills">
-                        <i class="fas fa-calendar-alt"></i>
-                        <h3>No Recurring Bills</h3>
-                        <p>Add your monthly subscriptions and bills to track them automatically</p>
-                        <button class="premium-btn" onclick="showAddBillModal()">Add First Bill</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Budget Limits Section -->
-            <section id="budget-limits" class="content-section">
-                <div class="section-header">
-                    <div class="header-content">
-                        <h1 class="page-title">Budget Limits</h1>
-                        <p class="page-subtitle">Set and manage your spending limits</p>
-                    </div>
-                </div>
-
-                <div class="budget-container">
-                    <div class="budget-card">
-                        <h3>Monthly Budget</h3>
-                        <div class="budget-setting">
-                            <div class="current-budget">
-                                <span class="budget-amount">₹<span id="current-budget">10000</span></span>
-                                <span class="budget-label">Current Monthly Budget</span>
-                            </div>
-                            <div class="budget-controls">
-                                <input type="number" id="new-budget" placeholder="Enter new budget" min="0">
-                                <button class="premium-btn" onclick="updateBudget()">Update Budget</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="category-budgets">
-                        <h3>Category Limits</h3>
-                        <div class="category-budget-list" id="category-budget-list">
-                            <!-- Category budgets will be populated here -->
-                        </div>
-                        <button class="premium-btn secondary" onclick="addCategoryBudget()">
-                            <i class="fas fa-plus"></i>
-                            <span>Add Category Limit</span>
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Analytics Section -->
-            <section id="analytics" class="content-section">
-                <div class="section-header">
-                    <div class="header-content">
-                        <h1 class="page-title">Advanced Analytics</h1>
-                        <p class="page-subtitle">Deep insights into your spending patterns</p>
-                    </div>
-                    <div class="header-actions">
-                        <select class="period-selector" id="analytics-period">
-                            <option value="current">Current Period</option>
-                            <option value="last">Last Period</option>
-                            <option value="all">All Time</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="analytics-grid">
-                    <div class="analytics-card">
-                        <div class="card-header">
-                            <h3>Category Distribution</h3>
-                            <div class="chart-legend" id="category-legend"></div>
-                        </div>
-                        <div class="chart-container">
-                            <div class="no-data">
-                                <i class="fas fa-chart-pie"></i>
-                                <p>Add expenses to see category breakdown</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="analytics-card">
-                        <div class="card-header">
-                            <h3>Spending Trends</h3>
-                            <div class="trend-indicators" id="trend-indicators"></div>
-                        </div>
-                        <div class="chart-container">
-                            <div class="no-data">
-                                <i class="fas fa-chart-line"></i>
-                                <p>Track for a few days to see trends</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="insights-section">
-                    <h3>AI-Powered Insights</h3>
-                    <div class="insights-grid" id="insights-container">
-                        <div class="insight-card">
-                            <i class="fas fa-lightbulb"></i>
-                            <p>Start tracking your expenses to get personalized insights!</p>
-                        </div>
-                    </div>
                 </div>
             </section>
 
@@ -556,18 +413,13 @@
                         <p class="page-subtitle">View and manage all your past expenses</p>
                     </div>
                     <div class="header-actions">
-                        <button class="premium-btn secondary" onclick="exportData()">
+                        <button class="premium-btn secondary" id="export-data">
                             <i class="fas fa-download"></i>
                             <span>Export</span>
-                        </button>
-                        <button class="premium-btn danger" onclick="showClearHistoryModal()">
-                            <i class="fas fa-trash"></i>
-                            <span>Clear All</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Premium History Interface -->
                 <div class="history-interface">
                     <div class="history-filters">
                         <div class="filter-group">
@@ -600,14 +452,6 @@
                                 <input type="date" id="history-date-to">
                             </div>
                         </div>
-                        <div class="filter-group">
-                            <label>Amount</label>
-                            <div class="amount-range">
-                                <input type="number" id="history-amount-min" placeholder="Min">
-                                <span>-</span>
-                                <input type="number" id="history-amount-max" placeholder="Max">
-                            </div>
-                        </div>
                     </div>
 
                     <div class="history-summary">
@@ -616,7 +460,7 @@
                                 <i class="fas fa-calculator"></i>
                             </div>
                             <div class="summary-content">
-                                <span class="summary-label">Total Filtered</span>
+                                <span class="summary-label">Total Amount</span>
                                 <span class="summary-value" id="filtered-total">₹0</span>
                             </div>
                         </div>
@@ -640,69 +484,59 @@
                         </div>
                     </div>
 
-                    <div class="history-table-container">
-                        <div class="table-header">
-                            <div class="table-actions">
-                                <button class="table-btn" onclick="selectAllExpenses()">Select All</button>
-                                <button class="table-btn danger" onclick="deleteSelectedExpenses()">Delete Selected</button>
-                            </div>
-                            <div class="table-info">
-                                <span id="table-showing">Showing 0 of 0 expenses</span>
-                            </div>
-                        </div>
-                        
-                        <div class="premium-table">
-                            <table id="expenses-table">
-                                <thead>
-                                    <tr>
-                                        <th><input type="checkbox" id="select-all-checkbox"></th>
-                                        <th onclick="sortTable('date')">Date <i class="fas fa-sort"></i></th>
-                                        <th onclick="sortTable('description')">Description <i class="fas fa-sort"></i></th>
-                                        <th onclick="sortTable('category')">Category <i class="fas fa-sort"></i></th>
-                                        <th onclick="sortTable('amount')">Amount <i class="fas fa-sort"></i></th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="expenses-table-body">
-                                    <tr class="no-data-row">
-                                        <td colspan="6">
-                                            <div class="no-data-message">
-                                                <i class="fas fa-receipt"></i>
-                                                <h3>No Expenses Found</h3>
-                                                <p>Start adding expenses to see your history here</p>
-                                                <button class="premium-btn" onclick="showSection('add-expense')">Add First Expense</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="table-pagination">
-                            <div class="pagination-info">
-                                <span>Rows per page:</span>
-                                <select id="rows-per-page">
-                                    <option value="10">10</option>
-                                    <option value="25" selected>25</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                </select>
-                            </div>
-                            <div class="pagination-controls">
-                                <button class="pagination-btn" onclick="previousPage()">
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                                <span id="pagination-info">1 of 1</span>
-                                <button class="pagination-btn" onclick="nextPage()">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
+                    <div class="expenses-table-container">
+                        <div id="expenses-list" class="expenses-list">
+                            <!-- Expenses will be populated here -->
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Settings Section -->
+            <!-- Other sections (budget-limits, recurring-bills, analytics, settings) can be added similarly -->
+            
+            <!-- Placeholder sections -->
+            <section id="recurring-bills" class="content-section">
+                <div class="section-header">
+                    <div class="header-content">
+                        <h1 class="page-title">Recurring Bills</h1>
+                        <p class="page-subtitle">Manage your monthly subscriptions and bills</p>
+                    </div>
+                </div>
+                <div class="coming-soon">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3>Coming Soon</h3>
+                    <p>Recurring bills feature will be available in the next update</p>
+                </div>
+            </section>
+
+            <section id="budget-limits" class="content-section">
+                <div class="section-header">
+                    <div class="header-content">
+                        <h1 class="page-title">Budget Limits</h1>
+                        <p class="page-subtitle">Set and manage your spending limits</p>
+                    </div>
+                </div>
+                <div class="coming-soon">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Coming Soon</h3>
+                    <p>Budget management features will be available in the next update</p>
+                </div>
+            </section>
+
+            <section id="analytics" class="content-section">
+                <div class="section-header">
+                    <div class="header-content">
+                        <h1 class="page-title">Analytics</h1>
+                        <p class="page-subtitle">Deep insights into your spending patterns</p>
+                    </div>
+                </div>
+                <div class="coming-soon">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Coming Soon</h3>
+                    <p>Advanced analytics will be available in the next update</p>
+                </div>
+            </section>
+
             <section id="settings" class="content-section">
                 <div class="section-header">
                     <div class="header-content">
@@ -710,155 +544,84 @@
                         <p class="page-subtitle">Customize your expense tracking experience</p>
                     </div>
                 </div>
-
-                <div class="settings-grid">
+                <div class="settings-container">
                     <div class="settings-card">
-                        <div class="card-header">
-                            <h3>Account Settings</h3>
-                            <p>Manage your account preferences</p>
+                        <h3>Account Settings</h3>
+                        <div class="setting-item">
+                            <label>Email</label>
+                            <input type="email" id="user-email" readonly>
                         </div>
-                        <div class="card-content">
-                            <div class="setting-item">
-                                <label>Username</label>
-                                <input type="text" id="settings-username" readonly>
-                                <button class="edit-btn" onclick="editUsername()">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </div>
-                            <div class="setting-item">
-                                <label>Email</label>
-                                <input type="email" id="settings-email" readonly>
-                                <button class="edit-btn" onclick="editEmail()">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </div>
-                            <button class="premium-btn danger" onclick="changePassword()">
-                                <i class="fas fa-key"></i>
-                                <span>Change Password</span>
-                            </button>
+                        <div class="setting-item">
+                            <label>Name</label>
+                            <input type="text" id="user-name" readonly>
                         </div>
-                    </div>
-
-                    <div class="settings-card">
-                        <div class="card-header">
-                            <h3>Notifications</h3>
-                            <p>Configure your reminder preferences</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="setting-item">
-                                <label>Daily Reminder Time</label>
-                                <input type="time" id="reminder-time" value="21:30">
-                            </div>
-                            <div class="setting-item toggle-item">
-                                <label>Budget Warnings</label>
-                                <div class="toggle-switch">
-                                    <input type="checkbox" id="budget-warnings" checked>
-                                    <span class="slider"></span>
-                                </div>
-                            </div>
-                            <div class="setting-item toggle-item">
-                                <label>Bill Reminders</label>
-                                <div class="toggle-switch">
-                                    <input type="checkbox" id="bill-reminders" checked>
-                                    <span class="slider"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-card">
-                        <div class="card-header">
-                            <h3>Data Management</h3>
-                            <p>Backup, restore, and manage your data</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="data-actions">
-                                <button class="action-btn export" onclick="exportAllData()">
-                                    <i class="fas fa-download"></i>
-                                    <span>Export All Data</span>
-                                </button>
-                                <button class="action-btn import" onclick="document.getElementById('import-file').click()">
-                                    <i class="fas fa-upload"></i>
-                                    <span>Import Data</span>
-                                </button>
-                                <input type="file" id="import-file" accept=".json" style="display: none" onchange="importData(this)">
-                                <button class="action-btn danger" onclick="showClearDataModal()">
-                                    <i class="fas fa-trash"></i>
-                                    <span>Clear All Data</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-card">
-                        <div class="card-header">
-                            <h3>Theme & Appearance</h3>
-                            <p>Customize the look and feel</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="theme-selector">
-                                <div class="theme-option active" data-theme="default">
-                                    <div class="theme-preview default-theme"></div>
-                                    <span>Default</span>
-                                </div>
-                                <div class="theme-option" data-theme="dark">
-                                    <div class="theme-preview dark-theme"></div>
-                                    <span>Dark</span>
-                                </div>
-                                <div class="theme-option" data-theme="ocean">
-                                    <div class="theme-preview ocean-theme"></div>
-                                    <span>Ocean</span>
-                                </div>
-                            </div>
-                        </div>
+                        <button class="premium-btn danger" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Sign Out</span>
+                        </button>
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Modals -->
-    <div id="period-modal" class="modal">
-        <div class="modal-content premium-modal">
-            <div class="modal-header">
-                <h3>Start New Tracking Period</h3>
-                <button class="close-btn" onclick="closePeriodModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="period-form">
-                    <div class="form-group">
-                        <label>Period Duration</label>
-                        <div class="duration-selector">
-                            <input type="number" id="new-period-duration" value="30" min="1" max="365">
-                            <select id="new-period-unit">
-                                <option value="days">Days</option>
-                                <option value="weeks">Weeks</option>
-                                <option value="months">Months</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Start Date</label>
-                        <input type="date" id="new-period-start">
-                    </div>
-                    <div class="form-group">
-                        <label>Budget Limit</label>
-                        <input type="number" id="new-period-budget" placeholder="10000" min="0">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="premium-btn secondary" onclick="closePeriodModal()">Cancel</button>
-                <button class="premium-btn primary" onclick="createNewPeriod()">Start New Period</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notification System -->
+    <!-- Notification Container -->
     <div id="notification-container" class="notification-container"></div>
 
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import Firebase SDKs
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxoHEnbO2um_po3fOIgct7NsIAkkSipiE",
+            authDomain: "studyspend-pro.firebaseapp.com",
+            projectId: "studyspend-pro",
+            storageBucket: "studyspend-pro.firebasestorage.app",
+            messagingSenderId: "234069009686",
+            appId: "1:234069009686:web:14ea36c3b5a3d484f11c37",
+            measurementId: "G-3X5DFJ979Z"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+
+        // Make Firebase available globally
+        window.firebaseAuth = auth;
+        window.firebaseDB = db;
+        window.firebase = {
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signInWithPopup,
+            GoogleAuthProvider,
+            signOut,
+            onAuthStateChanged,
+            updateProfile,
+            doc,
+            setDoc,
+            getDoc,
+            collection,
+            addDoc,
+            query,
+            orderBy,
+            onSnapshot,
+            deleteDoc,
+            where,
+            getDocs
+        };
+
+        // Start the app once Firebase is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new StudySpendPro();
+        });
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
