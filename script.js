@@ -1,7 +1,25 @@
 class StudySpendPro {
     constructor() {
         this.currentUser = null;
+        this.expenses = [];
+        this.recurringBills = [];
+        this.unsubscribeExpenses = null;
+        this.currentPeriod = {
+            duration: 30,
+            startDate: new Date().toISOString().split('T')[0],
+            budget: 10000
+        };
+        this.currentMonth = new Date().toISOString().substring(0, 7);
+        this.archivedMonths = [];
+        this.charts = {};
+        
+        // Auto logout timer - 30 minutes
+        this.idleTimer = null;
+        this.lastActivity = Date.now();
+        this.IDLE_TIMEOUT = 30 * 60 * 1000;
+        this.hasShownWelcome = false;
         this.authInitialized = false;
+        
         console.log('🚀 StudySpendPro initialized');
         this.init();
     }
@@ -11,6 +29,11 @@ class StudySpendPro {
         this.showSplashScreen();
         this.setupEventListeners();
         this.waitForFirebaseAndSetupAuth();
+        this.setupIdleTimer();
+        
+        // Online/offline detection
+        window.addEventListener('online', () => this.updateSyncStatus('synced'));
+        window.addEventListener('offline', () => this.updateSyncStatus('offline'));
     }
 
     showSplashScreen() {
@@ -45,7 +68,6 @@ class StudySpendPro {
     waitForFirebaseAndSetupAuth() {
         console.log('🔥 Checking for Firebase...');
         
-        // Check if Firebase is properly loaded
         if (typeof firebase === 'undefined' || !firebase.auth) {
             console.log('⏳ Firebase not ready, retrying in 1 second...');
             setTimeout(() => this.waitForFirebaseAndSetupAuth(), 1000);
@@ -60,12 +82,10 @@ class StudySpendPro {
         console.log('👂 Setting up Firebase auth listener...');
         
         try {
-            // FIXED: Use correct Firebase v8 syntax
             firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
                 .then(() => {
                     console.log('✅ Auth persistence set to LOCAL');
                     
-                    // Set up auth state listener
                     firebase.auth().onAuthStateChanged((user) => {
                         console.log('🔄 Auth state changed:', user ? `User: ${user.email}` : 'No user');
                         
@@ -73,11 +93,19 @@ class StudySpendPro {
                         
                         if (user) {
                             this.currentUser = user;
-                            this.showMainApp();
-                            this.showNotification(`Welcome back, ${user.displayName || user.email}!`, 'success');
+                            this.setupUserProfile().then(() => {
+                                this.showMainApp();
+                                this.resetIdleTimer();
+                                if (!this.hasShownWelcome) {
+                                    this.showNotification(`Welcome back, ${user.displayName || user.email}!`, 'success');
+                                    this.hasShownWelcome = true;
+                                }
+                            });
                         } else {
                             this.currentUser = null;
-                            console.log('👤 No user logged in - showing auth screen');
+                            this.clearIdleTimer();
+                            this.hasShownWelcome = false;
+                            console.log('👤 No user logged in');
                         }
                     });
                 })
@@ -92,6 +120,45 @@ class StudySpendPro {
         }
     }
 
+    // AUTO LOGOUT FUNCTIONALITY
+    setupIdleTimer() {
+        const resetTimer = () => {
+            this.lastActivity = Date.now();
+            this.resetIdleTimer();
+        };
+
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+            document.addEventListener(event, resetTimer, true);
+        });
+
+        this.resetIdleTimer();
+    }
+
+    resetIdleTimer() {
+        if (!this.currentUser) return;
+
+        this.clearIdleTimer();
+        
+        this.idleTimer = setTimeout(() => {
+            this.handleIdleTimeout();
+        }, this.IDLE_TIMEOUT);
+    }
+
+    clearIdleTimer() {
+        if (this.idleTimer) {
+            clearTimeout(this.idleTimer);
+            this.idleTimer = null;
+        }
+    }
+
+    async handleIdleTimeout() {
+        if (this.currentUser) {
+            console.log('⏰ User idle timeout - logging out');
+            this.showNotification('You have been automatically logged out due to inactivity', 'warning');
+            await this.logout();
+        }
+    }
+
     showMainApp() {
         console.log('🏠 Showing main app...');
         
@@ -103,7 +170,77 @@ class StudySpendPro {
         if (authScreen) authScreen.classList.add('hidden');
         if (mainApp) mainApp.classList.remove('hidden');
         
+        this.loadUserData();
+        this.updateDashboard();
+        this.updateCurrentMonthDisplay();
         console.log('✅ Main app displayed');
+    }
+
+    async setupUserProfile() {
+        if (!this.currentUser) return;
+        
+        try {
+            const userDocRef = firebase.firestore().collection('users').doc(this.currentUser.uid);
+            const userDoc = await userDocRef.get();
+            
+            if (!userDoc.exists) {
+                await userDocRef.set({
+                    email: this.currentUser.email,
+                    displayName: this.currentUser.displayName || 'User',
+                    createdAt: new Date().toISOString(),
+                    settings: {
+                        budget: 10000,
+                        periodDuration: 30,
+                        currency: 'INR',
+                        theme: 'default'
+                    },
+                    currentPeriod: this.currentPeriod
+                });
+            } else {
+                const userData = userDoc.data();
+                if (userData.currentPeriod) {
+                    this.currentPeriod = userData.currentPeriod;
+                }
+            }
+            
+            // Update UI with user info
+            document.getElementById('user-name').textContent = 
+                this.currentUser.displayName || this.currentUser.email.split('@')[0];
+            
+            // Set values in settings
+            const settingsEmail = document.getElementById('settings-email');
+            const settingsName = document.getElementById('settings-name');
+            const settingsJoined = document.getElementById('settings-joined');
+            
+            if (settingsEmail) settingsEmail.value = this.currentUser.email || '';
+            if (settingsName) settingsName.value = this.currentUser.displayName || '';
+            if (settingsJoined) settingsJoined.value = new Date(this.currentUser.metadata.creationTime).toLocaleDateString();
+            
+            // Update budget displays
+            const currentBudgetDisplay = document.getElementById('current-budget-display');
+            const budgetPeriodDisplay = document.getElementById('budget-period-display');
+            const currentPeriodDisplay = document.getElementById('current-period-display');
+            
+            if (currentBudgetDisplay) currentBudgetDisplay.textContent = this.currentPeriod.budget.toLocaleString();
+            if (budgetPeriodDisplay) budgetPeriodDisplay.textContent = `${this.currentPeriod.duration} days`;
+            if (currentPeriodDisplay) currentPeriodDisplay.textContent = `${this.currentPeriod.duration} Days`;
+            
+            // Set user avatar
+            const avatar = document.getElementById('user-avatar');
+            if (avatar) {
+                if (this.currentUser.photoURL) {
+                    avatar.innerHTML = `<img src="${this.currentUser.photoURL}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                } else {
+                    avatar.innerHTML = '<i class="fas fa-user"></i>';
+                }
+            }
+
+            // Fix input labels after setting values
+            setTimeout(() => this.fixInputLabels(), 100);
+        } catch (error) {
+            console.error('Error setting up user profile:', error);
+            this.showNotification('Error loading user profile', 'error');
+        }
     }
 
     setupEventListeners() {
@@ -117,43 +254,213 @@ class StudySpendPro {
             });
         });
 
-        // Login form - FIXED
+        // Auth forms
         const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const googleBtn = document.getElementById('google-login');
+
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                console.log('📝 Login form submitted');
                 this.handleLogin();
             });
-        } else {
-            console.warn('⚠️ Login form not found');
         }
 
-        // Register form - FIXED
-        const registerForm = document.getElementById('register-form');
         if (registerForm) {
             registerForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                console.log('📝 Register form submitted');
                 this.handleRegister();
             });
-        } else {
-            console.warn('⚠️ Register form not found');
         }
 
-        // Google login - FIXED
-        const googleBtn = document.getElementById('google-login');
         if (googleBtn) {
             googleBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                console.log('🔍 Google login clicked');
                 this.handleGoogleLogin();
             });
-        } else {
-            console.warn('⚠️ Google login button not found');
         }
 
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const section = item.dataset.section;
+                this.showSection(section);
+                this.setActiveNav(item);
+            });
+        });
+
+        // Logo click
+        const homeBtn = document.getElementById('home-btn');
+        if (homeBtn) {
+            homeBtn.addEventListener('click', () => {
+                this.showSection('dashboard');
+                this.setActiveNav(document.querySelector('[data-section="dashboard"]'));
+            });
+        }
+
+        // Logout buttons
+        const logoutBtn = document.getElementById('logout-btn');
+        const logoutSettings = document.getElementById('logout-settings');
+        
+        if (logoutBtn) logoutBtn.addEventListener('click', () => this.logout());
+        if (logoutSettings) logoutSettings.addEventListener('click', () => this.logout());
+
+        // Period controls
+        const periodSettingsBtn = document.getElementById('period-settings-btn');
+        const resetMonthBtn = document.getElementById('reset-month-btn');
+        const prevMonthBtn = document.getElementById('prev-month-btn');
+        const nextMonthBtn = document.getElementById('next-month-btn');
+
+        if (periodSettingsBtn) periodSettingsBtn.addEventListener('click', () => this.showPeriodModal());
+        if (resetMonthBtn) resetMonthBtn.addEventListener('click', () => this.showResetModal());
+        if (prevMonthBtn) prevMonthBtn.addEventListener('click', () => this.navigateMonth(-1));
+        if (nextMonthBtn) nextMonthBtn.addEventListener('click', () => this.navigateMonth(1));
+
+        // Budget management
+        const editBudgetBtn = document.getElementById('edit-budget-btn');
+        const cancelBudgetEdit = document.getElementById('cancel-budget-edit');
+        const saveBudget = document.getElementById('save-budget');
+
+        if (editBudgetBtn) editBudgetBtn.addEventListener('click', () => this.toggleBudgetEdit());
+        if (cancelBudgetEdit) cancelBudgetEdit.addEventListener('click', () => this.toggleBudgetEdit(false));
+        if (saveBudget) saveBudget.addEventListener('click', () => this.saveBudgetSettings());
+
+        // Quick actions
+        const addExpenseQuick = document.getElementById('add-expense-quick');
+        if (addExpenseQuick) {
+            addExpenseQuick.addEventListener('click', () => {
+                this.showSection('add-expense');
+                this.setActiveNav(document.querySelector('[data-section="add-expense"]'));
+            });
+        }
+
+        // Expense form
+        const expenseForm = document.getElementById('expense-form');
+        const clearForm = document.getElementById('clear-form');
+
+        if (expenseForm) expenseForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addExpense();
+        });
+        if (clearForm) clearForm.addEventListener('click', () => this.clearExpenseForm());
+
+        // Quick amount buttons
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const amountInput = document.getElementById('expense-amount');
+                if (amountInput) {
+                    amountInput.value = btn.dataset.amount;
+                    this.fixInputLabels();
+                }
+            });
+        });
+
+        // Export and delete
+        const exportData = document.getElementById('export-data');
+        const deleteMonthData = document.getElementById('delete-month-data');
+
+        if (exportData) exportData.addEventListener('click', () => this.exportExpenses());
+        if (deleteMonthData) deleteMonthData.addEventListener('click', () => this.deleteMonthData());
+
+        // History filters
+        const searchExpenses = document.getElementById('search-expenses');
+        const filterCategory = document.getElementById('filter-category');
+
+        if (searchExpenses) searchExpenses.addEventListener('input', () => this.filterExpenses());
+        if (filterCategory) filterCategory.addEventListener('change', () => this.filterExpenses());
+
+        // Analytics
+        const analyticsPeriod = document.getElementById('analytics-period');
+        if (analyticsPeriod) analyticsPeriod.addEventListener('change', () => this.updateAnalytics());
+
+        // Modal handlers
+        this.setupModalHandlers();
+
+        // View all buttons
+        document.querySelectorAll('.view-all-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const section = btn.dataset.section;
+                if (section) {
+                    this.showSection(section);
+                    this.setActiveNav(document.querySelector(`[data-section="${section}"]`));
+                }
+            });
+        });
+
+        // Add first expense buttons
+        document.querySelectorAll('[data-section="add-expense"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.showSection('add-expense');
+                this.setActiveNav(document.querySelector('[data-section="add-expense"]'));
+            });
+        });
+
+        // Set today's date
+        this.setTodaysDate();
+
+        // Fix input labels on load
+        setTimeout(() => this.fixInputLabels(), 100);
+        
         console.log('✅ Event listeners setup complete');
+    }
+
+    setupModalHandlers() {
+        // Period modal
+        const closePeriodModal = document.getElementById('close-period-modal');
+        const cancelPeriod = document.getElementById('cancel-period');
+        const savePeriod = document.getElementById('save-period');
+
+        if (closePeriodModal) closePeriodModal.addEventListener('click', () => this.closePeriodModal());
+        if (cancelPeriod) cancelPeriod.addEventListener('click', () => this.closePeriodModal());
+        if (savePeriod) savePeriod.addEventListener('click', () => this.savePeriodSettings());
+
+        // Reset modal
+        const closeResetModal = document.getElementById('close-reset-modal');
+        const cancelReset = document.getElementById('cancel-reset');
+        const confirmReset = document.getElementById('confirm-reset');
+
+        if (closeResetModal) closeResetModal.addEventListener('click', () => this.closeResetModal());
+        if (cancelReset) cancelReset.addEventListener('click', () => this.closeResetModal());
+        if (confirmReset) confirmReset.addEventListener('click', () => this.resetMonth());
+    }
+
+    // Fix input labels positioning issue - ENHANCED
+    fixInputLabels() {
+        document.querySelectorAll('.input-group').forEach(group => {
+            const input = group.querySelector('input, select, textarea');
+            const label = group.querySelector('label');
+            
+            if (!input || !label) return;
+
+            const updateLabel = () => {
+                const hasValue = input.value && input.value !== '';
+                const isFocused = document.activeElement === input;
+                
+                if (hasValue || isFocused) {
+                    label.style.transform = 'translateY(-40px) scale(0.85)';
+                    label.style.color = '#4facfe';
+                    label.style.background = 'rgba(0, 0, 0, 0.2)';
+                    label.style.backdropFilter = 'blur(10px)';
+                    label.style.padding = '4px 12px';
+                    label.style.borderRadius = '8px';
+                    label.style.left = '24px';
+                } else {
+                    label.style.transform = 'translateY(0) scale(1)';
+                    label.style.color = 'rgba(255, 255, 255, 0.7)';
+                    label.style.background = 'transparent';
+                    label.style.padding = '0';
+                    label.style.left = '56px';
+                }
+            };
+
+            // Initial update
+            updateLabel();
+
+            // Event listeners
+            input.addEventListener('focus', updateLabel);
+            input.addEventListener('blur', updateLabel);
+            input.addEventListener('input', updateLabel);
+        });
     }
 
     switchAuthTab(tab) {
@@ -167,15 +474,17 @@ class StudySpendPro {
         
         if (tabBtn) tabBtn.classList.add('active');
         if (form) form.classList.add('active');
+
+        setTimeout(() => this.fixInputLabels(), 100);
     }
 
-    // FIXED LOGIN METHOD
+    // FIXED LOGIN HANDLING
     async handleLogin() {
         console.log('🔐 Handling login...');
         
         const emailInput = document.getElementById('login-email');
         const passwordInput = document.getElementById('login-password');
-        const btn = document.querySelector('#login-form .auth-btn');
+        const btn = document.getElementById('login-btn');
         
         if (!emailInput || !passwordInput) {
             console.error('❌ Login inputs not found');
@@ -195,7 +504,6 @@ class StudySpendPro {
             this.setButtonLoading(btn, true);
             console.log('🔑 Attempting login for:', email);
             
-            // FIXED: Use correct Firebase auth method
             await firebase.auth().signInWithEmailAndPassword(email, password);
             
             console.log('✅ Login successful');
@@ -203,6 +511,7 @@ class StudySpendPro {
             // Clear form
             emailInput.value = '';
             passwordInput.value = '';
+            this.fixInputLabels();
             
         } catch (error) {
             console.error('❌ Login error:', error);
@@ -212,7 +521,7 @@ class StudySpendPro {
         }
     }
 
-    // FIXED REGISTER METHOD
+    // FIXED REGISTER HANDLING
     async handleRegister() {
         console.log('📝 Handling registration...');
         
@@ -220,7 +529,7 @@ class StudySpendPro {
         const emailInput = document.getElementById('register-email');
         const passwordInput = document.getElementById('register-password');
         const confirmInput = document.getElementById('register-confirm');
-        const btn = document.querySelector('#register-form .auth-btn');
+        const btn = document.getElementById('register-btn');
         
         if (!nameInput || !emailInput || !passwordInput || !confirmInput) {
             console.error('❌ Register inputs not found');
@@ -252,10 +561,8 @@ class StudySpendPro {
             this.setButtonLoading(btn, true);
             console.log('📋 Creating account for:', email);
             
-            // FIXED: Use correct Firebase auth method
             const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
             
-            // Update user profile
             await userCredential.user.updateProfile({
                 displayName: name
             });
@@ -268,6 +575,7 @@ class StudySpendPro {
             emailInput.value = '';
             passwordInput.value = '';
             confirmInput.value = '';
+            this.fixInputLabels();
             
         } catch (error) {
             console.error('❌ Registration error:', error);
@@ -277,7 +585,7 @@ class StudySpendPro {
         }
     }
 
-    // FIXED GOOGLE LOGIN METHOD
+    // FIXED GOOGLE LOGIN HANDLING
     async handleGoogleLogin() {
         console.log('🔍 Handling Google login...');
         
@@ -286,7 +594,6 @@ class StudySpendPro {
         try {
             this.setButtonLoading(btn, true);
             
-            // FIXED: Use correct Firebase auth method
             const provider = new firebase.auth.GoogleAuthProvider();
             provider.addScope('email');
             provider.addScope('profile');
@@ -306,148 +613,57 @@ class StudySpendPro {
         }
     }
 
-    setButtonLoading(button, loading) {
-        if (!button) {
-            console.warn('⚠️ Button not found for loading state');
-            return;
-        }
+    async logout() {
+        console.log('🚪 Logging out user');
         
-        if (loading) {
-            console.log('⏳ Setting button loading state');
-            button.disabled = true;
-            button.style.opacity = '0.7';
-            button.style.pointerEvents = 'none';
-            
-            // Store original content
-            if (!button.dataset.originalContent) {
-                button.dataset.originalContent = button.innerHTML;
-            }
-            
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-        } else {
-            console.log('✅ Clearing button loading state');
-            button.disabled = false;
-            button.style.opacity = '1';
-            button.style.pointerEvents = 'auto';
-            
-            // Restore original content
-            if (button.dataset.originalContent) {
-                button.innerHTML = button.dataset.originalContent;
-            }
-        }
-    }
-
-    getFirebaseErrorMessage(error) {
-        console.log('🔍 Firebase error code:', error.code);
-        
-        const errorMessages = {
-            'auth/user-not-found': 'No account found with this email address.',
-            'auth/wrong-password': 'Incorrect password. Please try again.',
-            'auth/email-already-in-use': 'An account with this email already exists.',
-            'auth/weak-password': 'Password should be at least 6 characters long.',
-            'auth/invalid-email': 'Please enter a valid email address.',
-            'auth/user-disabled': 'This account has been disabled.',
-            'auth/invalid-credential': 'Invalid email or password.',
-            'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
-            'auth/network-request-failed': 'Network error. Please check your internet connection.',
-            'auth/popup-closed-by-user': 'Sign-in cancelled by user.',
-            'auth/cancelled-popup-request': 'Sign-in cancelled.',
-            'auth/popup-blocked': 'Popup blocked. Please allow popups for this site.',
-            'auth/internal-error': 'Internal error. Please try again.',
-            'auth/invalid-api-key': 'Invalid Firebase configuration.',
-            'auth/app-deleted': 'Firebase app has been deleted.'
-        };
-        
-        return errorMessages[error.code] || error.message || 'An unexpected error occurred. Please try again.';
-    }
-
-    showNotification(message, type = 'info') {
-        console.log(`📢 ${type.toUpperCase()}: ${message}`);
-        
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'error' ? '#ff6b6b' : type === 'success' ? '#51cf66' : '#339af0'};
-            color: white;
-            padding: 16px 20px;
-            border-radius: 8px;
-            z-index: 10000;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            max-width: 350px;
-            font-family: 'Inter', sans-serif;
-        `;
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        
-        // Remove after 4 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 4000);
-    }
-}
-
-// Add essential CSS
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes fadeOut {
-        from { opacity: 1; }
-        to { opacity: 0; }
-    }
-    
-    .hidden { 
-        display: none !important; 
-    }
-    
-    .fa-spinner {
-        animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-`;
-document.head.appendChild(style);
-
-// Initialize app with proper error handling
-console.log('🌟 Starting StudySpend Pro...');
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('📄 DOM Content Loaded');
-    
-    // Check if required elements exist
-    const requiredElements = ['splash-screen', 'auth-screen', 'main-app'];
-    const missingElements = requiredElements.filter(id => !document.getElementById(id));
-    
-    if (missingElements.length > 0) {
-        console.error('❌ Missing HTML elements:', missingElements);
-        alert(`Missing required HTML elements: ${missingElements.join(', ')}\n\nPlease check your index.html file.`);
-        return;
-    }
-    
-    setTimeout(() => {
         try {
-            window.app = new StudySpendPro();
-            console.log('✅ App initialized successfully');
+            if (this.unsubscribeExpenses) {
+                this.unsubscribeExpenses();
+                this.unsubscribeExpenses = null;
+            }
+            
+            this.clearIdleTimer();
+            
+            this.expenses = [];
+            this.recurringBills = [];
+            this.currentUser = null;
+            
+            Object.values(this.charts).forEach(chart => {
+                if (chart && typeof chart.destroy === 'function') {
+                    chart.destroy();
+                }
+            });
+            this.charts = {};
+            
+            await firebase.auth().signOut();
+            
+            console.log('✅ Logout successful');
+            this.showNotification('Signed out successfully!', 'success');
+            
         } catch (error) {
-            console.error('❌ App initialization failed:', error);
-            alert('App failed to initialize. Check console for details.');
+            console.error('❌ Logout error:', error);
+            this.showNotification('Error signing out', 'error');
         }
-    }, 500);
-});
+    }
 
-// Global error handlers
-window.addEventListener('error', (event) => {
-    console.error('🚨 Global error:', event.error);
-});
+    showSection(sectionId) {
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
 
-window.addEventListener('unhandledrejection', (event) => {
-    console.error('🚨 Unhandled promise rejection:', event.reason);
-});
+        // Load section-specific data
+        switch(sectionId) {
+            case 'dashboard':
+                this.updateDashboard();
+                break;
+            case 'history':
+                this.displayExpenseHistory();
+                break;
+            case 'analytics':
+                this.updateAnalytics();
+                break;
