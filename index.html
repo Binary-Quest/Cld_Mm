@@ -32,86 +32,102 @@
             </div>
         </div>
     </div>
-
-    <!-- Auth Screen -->
-    <div id="auth-screen" class="auth-screen hidden">
+    <!-- Enhanced Login Screen -->
+<div id="auth-screen" class="auth-screen hidden">
+    <div class="auth-background">
+        <div class="auth-particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+    </div>
+    
+    <div class="auth-content">
         <div class="auth-container">
             <div class="auth-header">
                 <div class="auth-logo">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
-                <h2 class="auth-title">Welcome to StudySpend Pro</h2>
-                <p class="auth-subtitle">Smart Expense Management for Students</p>
+                <h1>StudySpend Pro</h1>
+                <p>Smart Expense Management for Students</p>
             </div>
 
-            <div class="auth-tabs">
-                <button class="tab-btn active" data-tab="login">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Login</span>
-                </button>
-                <button class="tab-btn" data-tab="register">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Sign Up</span>
-                </button>
-            </div>
-
-            <div class="auth-forms">
-                <form id="login-form" class="auth-form active">
-                    <div class="input-group">
-                        <input type="email" id="login-email" required>
-                        <label for="login-email">Email Address</label>
-                        <i class="fas fa-envelope input-icon"></i>
-                    </div>
-                    <div class="input-group">
-                        <input type="password" id="login-password" required>
-                        <label for="login-password">Password</label>
-                        <i class="fas fa-lock input-icon"></i>
-                    </div>
-                    <button type="submit" class="auth-btn primary-btn">
-                        <span>Login to Account</span>
-                        <i class="fas fa-arrow-right"></i>
+            <div class="auth-card">
+                <div class="auth-tabs">
+                    <button class="tab-btn active" data-tab="login">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
                     </button>
-                </form>
-
-                <form id="register-form" class="auth-form">
-                    <div class="input-group">
-                        <input type="text" id="register-name" required>
-                        <label for="register-name">Full Name</label>
-                        <i class="fas fa-user input-icon"></i>
-                    </div>
-                    <div class="input-group">
-                        <input type="email" id="register-email" required>
-                        <label for="register-email">Email Address</label>
-                        <i class="fas fa-envelope input-icon"></i>
-                    </div>
-                    <div class="input-group">
-                        <input type="password" id="register-password" required minlength="6">
-                        <label for="register-password">Password</label>
-                        <i class="fas fa-lock input-icon"></i>
-                    </div>
-                    <div class="input-group">
-                        <input type="password" id="register-confirm" required minlength="6">
-                        <label for="register-confirm">Confirm Password</label>
-                        <i class="fas fa-lock input-icon"></i>
-                    </div>
-                    <button type="submit" class="auth-btn primary-btn">
-                        <span>Create Account</span>
+                    <button class="tab-btn" data-tab="register">
                         <i class="fas fa-user-plus"></i>
+                        <span>Sign Up</span>
                     </button>
-                </form>
-            </div>
+                </div>
 
-            <div class="divider">
-                <span>or continue with</span>
-            </div>
+                <div class="auth-forms">
+                    <!-- Login Form -->
+                    <form id="login-form" class="auth-form active">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <input type="email" id="login-email" required autocomplete="email">
+                                <label for="login-email">Email Address</label>
+                                <i class="fas fa-envelope input-icon"></i>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="login-password" required autocomplete="current-password">
+                                <label for="login-password">Password</label>
+                                <i class="fas fa-lock input-icon"></i>
+                            </div>
+                        </div>
+                        <button type="submit" class="auth-btn primary-btn" id="login-btn">
+                            <span>Login</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </form>
 
-            <button id="google-login" class="auth-btn google-btn">
-                <i class="fab fa-google"></i>
-                <span>Google</span>
-            </button>
+                    <!-- Register Form -->
+                    <form id="register-form" class="auth-form">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <input type="text" id="register-name" required autocomplete="name">
+                                <label for="register-name">Full Name</label>
+                                <i class="fas fa-user input-icon"></i>
+                            </div>
+                            <div class="input-group">
+                                <input type="email" id="register-email" required autocomplete="email">
+                                <label for="register-email">Email Address</label>
+                                <i class="fas fa-envelope input-icon"></i>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="register-password" required minlength="6" autocomplete="new-password">
+                                <label for="register-password">Password</label>
+                                <i class="fas fa-lock input-icon"></i>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="register-confirm" required minlength="6" autocomplete="new-password">
+                                <label for="register-confirm">Confirm Password</label>
+                                <i class="fas fa-lock input-icon"></i>
+                            </div>
+                        </div>
+                        <button type="submit" class="auth-btn primary-btn" id="register-btn">
+                            <span>Create Account</span>
+                            <i class="fas fa-user-plus"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="auth-divider">
+                    <span>or continue with</span>
+                </div>
+
+                <button id="google-login" class="auth-btn google-btn">
+                    <i class="fab fa-google"></i>
+                    <span>Google</span>
+                </button>
+            </div>
         </div>
     </div>
-
+</div>
     <!-- Main App -->
     <div id="main-app" class="main-app hidden">
         <!-- Sidebar -->
