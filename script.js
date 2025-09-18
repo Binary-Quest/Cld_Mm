@@ -9,26 +9,18 @@ class StudySpendPro {
     init() {
         console.log('📱 Starting app initialization...');
         this.showSplashScreen();
+        this.setupEventListeners();
         
-        // Add debugging to check DOM elements
-        setTimeout(() => {
-            console.log('🔍 Checking DOM elements...');
-            console.log('Splash screen:', document.getElementById('splash-screen'));
-            console.log('Auth screen:', document.getElementById('auth-screen'));
-            console.log('Main app:', document.getElementById('main-app'));
-            
-            this.setupEventListeners();
-            this.waitForFirebaseAndSetupAuth();
-        }, 100);
+        // Wait for Firebase to be ready
+        this.waitForFirebaseAndSetupAuth();
     }
 
     showSplashScreen() {
         console.log('✨ Showing splash screen');
-        // Splash screen should already be visible by default
         
-        // Force transition after 3 seconds regardless of Firebase
+        // Force transition after 3 seconds
         setTimeout(() => {
-            console.log('⏰ 3 seconds passed, forcing transition...');
+            console.log('⏰ Transitioning to auth...');
             this.transitionToAuth();
         }, 3000);
     }
@@ -39,32 +31,26 @@ class StudySpendPro {
         const splash = document.getElementById('splash-screen');
         const authScreen = document.getElementById('auth-screen');
         
-        if (!splash) {
-            console.error('❌ Splash screen element not found!');
+        if (!splash || !authScreen) {
+            console.error('❌ Required elements not found');
             return;
         }
         
-        if (!authScreen) {
-            console.error('❌ Auth screen element not found!');
-            return;
-        }
-        
-        // Hide splash screen
         splash.style.animation = 'fadeOut 0.8s ease-out forwards';
         
         setTimeout(() => {
             splash.classList.add('hidden');
             authScreen.classList.remove('hidden');
-            console.log('✅ Transitioned to auth screen');
+            console.log('✅ Auth screen shown');
         }, 800);
     }
 
     waitForFirebaseAndSetupAuth() {
         console.log('🔥 Checking for Firebase...');
         
-        // Check if Firebase is available
-        if (typeof window.firebase === 'undefined') {
-            console.log('⏳ Firebase not ready yet, retrying in 1 second...');
+        // Check if Firebase is loaded
+        if (typeof firebase === 'undefined' || !firebase.auth) {
+            console.log('⏳ Firebase not ready, retrying in 1 second...');
             setTimeout(() => this.waitForFirebaseAndSetupAuth(), 1000);
             return;
         }
@@ -74,16 +60,16 @@ class StudySpendPro {
     }
 
     setupAuthListener() {
-        console.log('👂 Setting up auth listener...');
+        console.log('👂 Setting up Firebase auth listener...');
         
         try {
-            // Set persistence
-            window.firebase.auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL)
+            // FIXED: Use proper Firebase v8 syntax
+            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
                 .then(() => {
-                    console.log('✅ Auth persistence set');
+                    console.log('✅ Auth persistence set to LOCAL');
                     
                     // Set up auth state listener
-                    window.firebase.onAuthStateChanged(window.firebase.auth, (user) => {
+                    firebase.auth().onAuthStateChanged((user) => {
                         console.log('🔄 Auth state changed:', user ? `User: ${user.email}` : 'No user');
                         
                         this.authInitialized = true;
@@ -94,19 +80,18 @@ class StudySpendPro {
                             this.showNotification(`Welcome back, ${user.displayName || user.email}!`, 'success');
                         } else {
                             this.currentUser = null;
-                            // Auth screen should already be showing
                             console.log('👤 No user logged in');
                         }
                     });
                 })
                 .catch((error) => {
                     console.error('❌ Error setting auth persistence:', error);
-                    this.showNotification('Error initializing authentication', 'error');
+                    this.showNotification('Error setting up authentication', 'error');
                 });
                 
         } catch (error) {
-            console.error('❌ Error setting up auth listener:', error);
-            this.showNotification('Failed to initialize authentication', 'error');
+            console.error('❌ Critical error setting up auth:', error);
+            this.showNotification('Failed to initialize Firebase Auth', 'error');
         }
     }
 
@@ -140,7 +125,6 @@ class StudySpendPro {
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                console.log('📝 Login form submitted');
                 this.handleLogin();
             });
         }
@@ -150,7 +134,6 @@ class StudySpendPro {
         if (registerForm) {
             registerForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                console.log('📝 Register form submitted');
                 this.handleRegister();
             });
         }
@@ -160,12 +143,11 @@ class StudySpendPro {
         if (googleBtn) {
             googleBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                console.log('🔍 Google login clicked');
                 this.handleGoogleLogin();
             });
         }
 
-        console.log('✅ Event listeners set up');
+        console.log('✅ Event listeners setup complete');
     }
 
     switchAuthTab(tab) {
@@ -189,7 +171,6 @@ class StudySpendPro {
         const btn = document.querySelector('#login-form .auth-btn');
         
         if (!emailInput || !passwordInput) {
-            console.error('❌ Login inputs not found');
             this.showNotification('Login form not found', 'error');
             return;
         }
@@ -204,10 +185,15 @@ class StudySpendPro {
         
         try {
             this.setButtonLoading(btn, true);
-            console.log('🔑 Attempting login for:', email);
+            console.log('🔑 Signing in user:', email);
             
-            await window.firebase.signInWithEmailAndPassword(window.firebase.auth, email, password);
+            // FIXED: Use Firebase v8 syntax
+            await firebase.auth().signInWithEmailAndPassword(email, password);
             console.log('✅ Login successful');
+            
+            // Clear form
+            emailInput.value = '';
+            passwordInput.value = '';
             
         } catch (error) {
             console.error('❌ Login error:', error);
@@ -227,7 +213,6 @@ class StudySpendPro {
         const btn = document.querySelector('#register-form .auth-btn');
         
         if (!nameInput || !emailInput || !passwordInput || !confirmInput) {
-            console.error('❌ Register inputs not found');
             this.showNotification('Registration form not found', 'error');
             return;
         }
@@ -254,16 +239,23 @@ class StudySpendPro {
         
         try {
             this.setButtonLoading(btn, true);
-            console.log('📋 Attempting registration for:', email);
+            console.log('📋 Creating account for:', email);
             
-            const userCredential = await window.firebase.createUserWithEmailAndPassword(window.firebase.auth, email, password);
+            // FIXED: Use Firebase v8 syntax
+            const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
             
-            await window.firebase.updateProfile(userCredential.user, {
+            await userCredential.user.updateProfile({
                 displayName: name
             });
             
             console.log('✅ Registration successful');
             this.showNotification('Account created successfully!', 'success');
+            
+            // Clear form
+            nameInput.value = '';
+            emailInput.value = '';
+            passwordInput.value = '';
+            confirmInput.value = '';
             
         } catch (error) {
             console.error('❌ Registration error:', error);
@@ -281,8 +273,9 @@ class StudySpendPro {
         try {
             this.setButtonLoading(btn, true);
             
-            const provider = new window.firebase.GoogleAuthProvider();
-            await window.firebase.signInWithPopup(window.firebase.auth, provider);
+            // FIXED: Use Firebase v8 syntax
+            const provider = new firebase.auth.GoogleAuthProvider();
+            await firebase.auth().signInWithPopup(provider);
             
             console.log('✅ Google login successful');
             
@@ -306,7 +299,12 @@ class StudySpendPro {
         } else {
             button.disabled = false;
             button.style.opacity = '1';
-            button.innerHTML = button.dataset.originalText || button.innerHTML;
+            // Restore original text - you may need to store this
+            if (button.id === 'google-login') {
+                button.innerHTML = '<i class="fab fa-google"></i><span>Google</span>';
+            } else {
+                button.innerHTML = button.dataset.originalText || 'Submit';
+            }
         }
     }
 
@@ -318,7 +316,8 @@ class StudySpendPro {
             'auth/weak-password': 'Password too weak.',
             'auth/invalid-email': 'Invalid email address.',
             'auth/network-request-failed': 'Network error. Check connection.',
-            'auth/popup-blocked': 'Popup blocked. Allow popups for this site.'
+            'auth/popup-blocked': 'Popup blocked. Allow popups for this site.',
+            'auth/too-many-requests': 'Too many failed attempts. Try again later.'
         };
         
         return errorMessages[error.code] || error.message || 'An error occurred. Please try again.';
@@ -327,7 +326,6 @@ class StudySpendPro {
     showNotification(message, type = 'info') {
         console.log(`📢 ${type.toUpperCase()}: ${message}`);
         
-        // Simple notification - you can enhance this
         const notification = document.createElement('div');
         notification.style.cssText = `
             position: fixed;
@@ -340,6 +338,7 @@ class StudySpendPro {
             z-index: 10000;
             font-weight: 500;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            max-width: 300px;
         `;
         notification.textContent = message;
         
@@ -353,7 +352,7 @@ class StudySpendPro {
     }
 }
 
-// Add CSS for fadeOut animation
+// Add CSS
 const style = document.createElement('style');
 style.textContent = `
     @keyframes fadeOut {
@@ -366,48 +365,19 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Initialize app with extensive debugging
+// Initialize app
 console.log('🌟 Starting StudySpend Pro...');
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('📄 DOM loaded');
+    console.log('📄 DOM Content Loaded');
     
-    // Check if required elements exist
-    const requiredElements = ['splash-screen', 'auth-screen', 'main-app'];
-    const missingElements = [];
-    
-    requiredElements.forEach(id => {
-        const element = document.getElementById(id);
-        if (!element) {
-            missingElements.push(id);
-        } else {
-            console.log(`✅ Found element: ${id}`);
-        }
-    });
-    
-    if (missingElements.length > 0) {
-        console.error('❌ Missing required elements:', missingElements);
-        alert(`Missing required HTML elements: ${missingElements.join(', ')}\n\nPlease check your index.html file.`);
-        return;
-    }
-    
-    // Initialize app with delay to ensure everything is loaded
     setTimeout(() => {
         try {
             window.app = new StudySpendPro();
             console.log('✅ App initialized successfully');
         } catch (error) {
-            console.error('❌ Failed to initialize app:', error);
-            alert('Failed to initialize app. Check console for details.');
+            console.error('❌ App initialization failed:', error);
+            alert('App failed to initialize. Check console for details.');
         }
     }, 100);
-});
-
-// Global error handlers
-window.addEventListener('error', (event) => {
-    console.error('🚨 Global error:', event.error);
-});
-
-window.addEventListener('unhandledrejection', (event) => {
-    console.error('🚨 Unhandled promise rejection:', event.reason);
 });
