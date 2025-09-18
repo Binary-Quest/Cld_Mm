@@ -78,6 +78,7 @@ class StudySpendPro {
         this.setupAuthListener();
     }
 
+    // FIXED AUTH LISTENER WITH COMPREHENSIVE DEBUGGING
     setupAuthListener() {
         console.log('👂 Setting up Firebase auth listener...');
         
@@ -87,25 +88,38 @@ class StudySpendPro {
                     console.log('✅ Auth persistence set to LOCAL');
                     
                     firebase.auth().onAuthStateChanged((user) => {
-                        console.log('🔄 Auth state changed:', user ? `User: ${user.email}` : 'No user');
+                        console.log('🔄 AUTH STATE CHANGED EVENT FIRED');
+                        console.log('🔍 User object:', user ? `Email: ${user.email}, UID: ${user.uid}` : 'NULL');
                         
                         this.authInitialized = true;
                         
                         if (user) {
+                            console.log('👤 User is logged in - calling showMainApp()');
                             this.currentUser = user;
-                            this.setupUserProfile().then(() => {
-                                this.showMainApp();
-                                this.resetIdleTimer();
-                                if (!this.hasShownWelcome) {
-                                    this.showNotification(`Welcome back, ${user.displayName || user.email}!`, 'success');
-                                    this.hasShownWelcome = true;
-                                }
-                            });
+                            
+                            // Force immediate UI update with error handling
+                            try {
+                                this.setupUserProfile().then(() => {
+                                    this.showMainApp();
+                                    console.log('✅ showMainApp() completed successfully');
+                                });
+                            } catch (error) {
+                                console.error('❌ Error in showMainApp():', error);
+                                // Fallback - force transition manually
+                                this.forceUITransition();
+                            }
+                            
+                            this.resetIdleTimer();
+                            
+                            if (!this.hasShownWelcome) {
+                                this.showNotification(`Welcome back, ${user.displayName || user.email}!`, 'success');
+                                this.hasShownWelcome = true;
+                            }
                         } else {
+                            console.log('👤 No user - staying on auth screen');
                             this.currentUser = null;
                             this.clearIdleTimer();
                             this.hasShownWelcome = false;
-                            console.log('👤 No user logged in');
                         }
                     });
                 })
@@ -118,6 +132,117 @@ class StudySpendPro {
             console.error('❌ Critical error setting up auth:', error);
             this.showNotification('Failed to initialize Firebase Auth', 'error');
         }
+    }
+
+    // ENHANCED SHOWMAINAPP WITH BULLETPROOF ERROR HANDLING
+    showMainApp() {
+        console.log('🏠 showMainApp() called - starting transition...');
+        
+        const splash = document.getElementById('splash-screen');
+        const authScreen = document.getElementById('auth-screen');
+        const mainApp = document.getElementById('main-app');
+        
+        // Debug element existence
+        console.log('🔍 Elements check:', {
+            splash: !!splash,
+            authScreen: !!authScreen,
+            mainApp: !!mainApp
+        });
+        
+        if (!mainApp) {
+            console.error('❌ CRITICAL: main-app element not found!');
+            alert('Error: main-app element missing from HTML!');
+            return;
+        }
+        
+        if (!authScreen) {
+            console.error('❌ CRITICAL: auth-screen element not found!');
+            return;
+        }
+        
+        try {
+            // Hide splash and auth screens
+            if (splash) {
+                splash.classList.add('hidden');
+                splash.style.display = 'none';
+                console.log('✅ Splash screen hidden');
+            }
+            
+            if (authScreen) {
+                authScreen.classList.add('hidden');
+                authScreen.style.display = 'none';
+                console.log('✅ Auth screen hidden');
+            }
+            
+            // Show main app
+            mainApp.classList.remove('hidden');
+            mainApp.style.display = 'flex';
+            console.log('✅ Main app shown');
+            
+            // Verify the transition worked
+            setTimeout(() => {
+                const authVisible = authScreen && window.getComputedStyle(authScreen).display !== 'none';
+                const mainVisible = mainApp && window.getComputedStyle(mainApp).display !== 'none';
+                
+                console.log('🔍 Post-transition check:', {
+                    authScreenVisible: authVisible,
+                    mainAppVisible: mainVisible
+                });
+                
+                if (authVisible || !mainVisible) {
+                    console.error('❌ UI transition failed - forcing manual transition');
+                    this.forceUITransition();
+                }
+            }, 100);
+            
+            // Load user data
+            this.loadUserData();
+            this.updateDashboard();
+            this.updateCurrentMonthDisplay();
+            
+            console.log('✅ Main app fully initialized');
+            
+        } catch (error) {
+            console.error('❌ Error in showMainApp():', error);
+            this.forceUITransition();
+        }
+    }
+
+    // BACKUP FORCE TRANSITION METHOD
+    forceUITransition() {
+        console.log('🔨 FORCING UI transition as backup...');
+        
+        // Use direct style manipulation as fallback
+        const splash = document.getElementById('splash-screen');
+        const authScreen = document.getElementById('auth-screen');
+        const mainApp = document.getElementById('main-app');
+        
+        if (splash) {
+            splash.style.display = 'none';
+            splash.classList.add('hidden');
+            console.log('🔨 Splash force-hidden');
+        }
+        
+        if (authScreen) {
+            authScreen.style.display = 'none';
+            authScreen.classList.add('hidden');
+            console.log('🔨 Auth screen force-hidden');
+        }
+        
+        if (mainApp) {
+            mainApp.style.display = 'flex';
+            mainApp.classList.remove('hidden');
+            console.log('🔨 Main app force-shown');
+        }
+        
+        // Double-check after a short delay
+        setTimeout(() => {
+            if (mainApp && window.getComputedStyle(mainApp).display === 'none') {
+                mainApp.style.display = 'block';
+                console.log('🔨 Final force - set main app to block');
+            }
+            console.log('✅ Force transition complete');
+        }, 100);
     }
 
     // AUTO LOGOUT FUNCTIONALITY
@@ -157,23 +282,6 @@ class StudySpendPro {
             this.showNotification('You have been automatically logged out due to inactivity', 'warning');
             await this.logout();
         }
-    }
-
-    showMainApp() {
-        console.log('🏠 Showing main app...');
-        
-        const splash = document.getElementById('splash-screen');
-        const authScreen = document.getElementById('auth-screen');
-        const mainApp = document.getElementById('main-app');
-        
-        if (splash) splash.classList.add('hidden');
-        if (authScreen) authScreen.classList.add('hidden');
-        if (mainApp) mainApp.classList.remove('hidden');
-        
-        this.loadUserData();
-        this.updateDashboard();
-        this.updateCurrentMonthDisplay();
-        console.log('✅ Main app displayed');
     }
 
     async setupUserProfile() {
@@ -457,7 +565,7 @@ class StudySpendPro {
         setTimeout(() => this.fixInputLabels(), 100);
     }
 
-    // ENHANCED LOGIN HANDLER WITH COMPREHENSIVE ERROR HANDLING
+    // ENHANCED LOGIN HANDLER WITH MANUAL TRIGGER BACKUP
     async handleLogin() {
         console.log('🔐 handleLogin() called');
         
@@ -509,6 +617,21 @@ class StudySpendPro {
             emailInput.value = '';
             passwordInput.value = '';
             this.fixInputLabels();
+            
+            // BACKUP: Force UI update if auth state doesn't fire within 3 seconds
+            setTimeout(() => {
+                const currentUser = firebase.auth().currentUser;
+                if (currentUser && !this.currentUser) {
+                    console.log('🔨 Auth state listener didn\'t fire - forcing manual update');
+                    this.currentUser = currentUser;
+                    this.setupUserProfile().then(() => {
+                        this.showMainApp();
+                    });
+                } else if (currentUser && document.getElementById('auth-screen').style.display !== 'none') {
+                    console.log('🔨 Auth screen still visible - forcing transition');
+                    this.showMainApp();
+                }
+            }, 3000);
             
         } catch (error) {
             console.error('❌ Login error:', error);
@@ -1190,7 +1313,7 @@ class StudySpendPro {
     }
 }
 
-// Add essential CSS for animations
+// Add essential CSS for animations and force transitions
 const style = document.createElement('style');
 style.textContent = `
     @keyframes fadeOut {
@@ -1217,10 +1340,15 @@ style.textContent = `
         opacity: 0.8 !important;
         cursor: not-allowed !important;
     }
+    
+    /* Force main app to be flex when shown */
+    .main-app:not(.hidden) {
+        display: flex !important;
+    }
 `;
 document.head.appendChild(style);
 
-// Initialize app with comprehensive error handling
+// Initialize app with comprehensive error handling and debug functions
 console.log('🌟 Starting StudySpend Pro...');
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1240,6 +1368,20 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             window.app = new StudySpendPro();
             console.log('✅ App initialized successfully');
+            
+            // Add debug function for manual login force
+            window.forceLogin = function() {
+                console.log('🚨 Emergency login force');
+                if (firebase.auth().currentUser) {
+                    window.app.currentUser = firebase.auth().currentUser;
+                    window.app.setupUserProfile().then(() => {
+                        window.app.showMainApp();
+                    });
+                } else {
+                    console.log('No current user found');
+                }
+            };
+            
         } catch (error) {
             console.error('❌ App initialization failed:', error);
             alert('App failed to initialize. Check console for details.');
