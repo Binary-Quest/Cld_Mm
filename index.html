@@ -1,627 +1,389 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudySpend Pro - Premium Student Expense Tracker</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    ```ta charset="UTF-8">```  <meta name="viewport"```ntent="width=device-width,```itial-scale=1.0">```  <title>StudySp``` Pro - Premium Student Expense Tracker```itle>
+    <link```l="stylesheet" href="styles.css```    <link href```ttps://cdnjs.cloudflare.com```ax/libs/font-awesome/6.4.0/css/all.min```s" rel="stylesheet">```  <link href="https://fonts.googleapis.```/css2?family=Inter:wght@300;400;```;600;700;800;900&display=swap" rel="```lesheet">
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="loading-screen">
-        <div class="loading-content">
-            <div class="logo-animation">
-                <div class="logo-circle">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <div class="logo-rings">
-                    <div class="ring ring-1"></div>
-                    <div class="ring ring-2"></div>
-                    <div class="ring ring-3"></div>
-                </div>
-            </div>
-            <h1 class="loading-title">StudySpend Pro</h1>
-            <p class="loading-subtitle">Connecting to cloud...</p>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
-            </div>
+    <!--```imated Splash Screen -->
+    ```v id="splash-screen"```ass="splash-screen">
+        ```v class="splash-content">```          <div class="logo-animation```                <div class="logo```nter">
+                    <i```ass="fas fa-graduation-cap```/i>
+                ```iv>
+                <div class="rings```ntainer">
+                    <div class="```g ring-1"></div>
+                    ```v class="ring ring-2"></div>
+                    <div```ass="ring ring-3"></div```               </div>
+            ```iv>
+            <h1```ass="splash-title">Stu```pend Pro</h1>```          <p class="splash-```title">Premium Expense Management</p>
+            <div class="```ding-dots">
+                <span```span>
+                <span>```pan>
+                <span></span```           </div>
+        </div>```      <div class="splash-particles```            <div class="particle```/div>
+            <div class```article"></div>
+            ```v class="particle"></div>```          <div class="particle"></div>```          <div class="particle">```iv>
         </div>
-    </div>
+    </div>```   <!-- Login/Register```reen -->
+    <div id="auth```reen" class="auth-screen```dden">
+        <div class="auth```ntainer">
+            <div class="auth-header">
+                ```v class="auth```go">
+                    <i```ass="fas fa-graduation-cap```/i>
+                </div>```              <h2 ```ss="auth-title">Welcome to```udySpend Pro</h2```               <p class="auth-subtitle">```rt Expense Management for Students</p>
+                ```v class="cloud-badge">
+                    <i class="``` fa-cloud"></i>
+                    ```an>Cloud Synced</span>
+                </div>```          </div>
 
-    <!-- Login Screen -->
-    <div id="login-screen" class="login-screen" style="display: none;">
-        <div class="login-container">
-            <div class="login-header">
-                <div class="login-logo">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <h1>StudySpend Pro</h1>
-                <p>Smart Expense Management for Students</p>
-                <div class="sync-badge">
-                    <i class="fas fa-cloud"></i>
-                    <span>Cloud Synced</span>
-                </div>
-            </div>
-            
-            <div class="login-form-container">
-                <div class="form-tabs">
-                    <button class="tab-btn active" onclick="switchTab('login')">Login</button>
-                    <button class="tab-btn" onclick="switchTab('register')">Create Account</button>
-                </div>
-                
-                <!-- Login Form -->
-                <form id="login-form" class="auth-form active">
-                    <div class="form-group">
-                        <input type="email" id="login-email" placeholder=" " required>
-                        <label>Email</label>
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <div class="form-group">
-                        <input type="password" id="login-password" placeholder=" " required>
-                        <label>Password</label>
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <button type="submit" class="auth-btn">
-                        <span>Login</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                </form>
-                
-                <!-- Register Form -->
-                <form id="register-form" class="auth-form">
-                    <div class="form-group">
-                        <input type="text" id="register-username" placeholder=" " required>
-                        <label>Full Name</label>
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" id="register-email" placeholder=" " required>
-                        <label>Email</label>
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <div class="form-group">
-                        <input type="password" id="register-password" placeholder=" " required minlength="6">
-                        <label>Password</label>
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <div class="form-group">
-                        <input type="password" id="register-confirm" placeholder=" " required minlength="6">
-                        <label>Confirm Password</label>
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <button type="submit" class="auth-btn">
-                        <span>Create Account</span>
-                        <i class="fas fa-user-plus"></i>
-                    </button>
-                </form>
+            <div class="auth-tabs```                <button class="tab```n active" data-tab="login">```                  <i class="fas fa```gn-in-alt"></i>
+                    <span>Login</span>
+                ```utton>
+                <button class```ab-btn" data-tab```egister">
+                    <i class="fas fa-user-plus```/i>
+                    <span```gn Up</span>
+                </button```           </div>
 
-                <div class="divider">
-                    <span>or</span>
-                </div>
+            ```v class="auth-forms```                <!-- Login Form -->
+                <form```="login-form" class="auth-form active```                    <div class="```ut-group">
+                        <input```pe="email" id="login-```il" required>
+                        <label for="login```ail">Email Address</label>
+                        ```class="fas fa-envelope input```on"></i>
+                        <div class="input-line```/div>
+                    </div```                   <div class="```ut-group">
+                        <input type="password" id="login```ssword" required>
+                        ```bel for="login-password">```sword</label>
+                        ```class="fas fa-lock input-icon"></i>
+                        ```v class="input-line"></div>
+                    </div>```                  <button type="submit" class="auth-btn primary```n">
+                        <span```gin to Account</span>
+                        ```class="fas fa-arrow-right"></i>
+                    ```utton>
+                </form>```               <!-- Register Form -->
+                <form id="register-form"```ass="auth-form">
+                ``` <div class="input-group```                        <input type="```t" id="register-name"```quired>
+                        <label for```egister-name">Full Name```abel>
+                        <i class```as fa-user input```on"></i>
+                        ```v class="input-line">```iv>
+                    </div>```                  <div class="input```oup">
+                        <input```pe="email" id="register-```il" required>
+                        ```bel for="register-email">Email```dress</label>
+                        ```class="fas fa-envelope input```on"></i>
+                        ```v class="input-line">```iv>
+                    </div>```                  <div class="input```oup">
+                        <input```pe="password" id="register-```sword" required minlength="6">
+                        ```bel for="register-password">```sword</label>
+                        ```class="fas fa-lock input```on"></i>
+                        ```v class="input-line">```iv>
+                    </div>```                  <div class="input```oup">
+                        <input```pe="password" id="register-```firm" required minlength="6">
+                        ```bel for="register-confirm">```firm Password</label>
+                        <i class="fas fa-```k input-icon"></i>```                      <div class="input-```e"></div>
+                    ```iv>
+                    <button type```ubmit" class="auth-btn```imary-btn">
+                        <span```eate Account</span>
+                ```     <i class="fas fa-```r-plus"></i>
+                    ```utton>
+                </form>```          </div>
 
-                <button id="google-login" class="google-btn">
-                    <i class="fab fa-google"></i>
-                    <span>Continue with Google</span>
-                </button>
-            </div>
-        </div>
-    </div>
+            <div class="div```r">
+                <span>or```ntinue with</span>
+            ```iv>
 
-    <!-- Main App Container -->
-    <div class="app-container" id="main-app" style="display: none;">
-        <!-- Premium Sidebar -->
-        <nav class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo-container" onclick="showSection('dashboard')">
-                    <div class="logo-icon">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <div class="logo-text">
-                        <h2>StudySpend</h2>
-                        <span>Pro</span>
-                    </div>
-                </div>
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <img id="user-avatar" src="" alt="Avatar" style="display: none;">
-                        <i class="fas fa-user" id="user-icon"></i>
-                    </div>
-                    <div class="user-details">
-                        <span class="username" id="current-username">User</span>
-                        <div class="sync-status" id="sync-status">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <span>Synced</span>
-                        </div>
-                    </div>
-                    <button class="logout-btn" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <ul class="nav-menu">
-                <li><a href="#dashboard" class="nav-link active" data-section="dashboard">
-                    <div class="nav-icon"><i class="fas fa-home"></i></div>
-                    <span>Dashboard</span>
-                    <div class="nav-indicator"></div>
-                </a></li>
-                <li><a href="#add-expense" class="nav-link" data-section="add-expense">
-                    <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
-                    <span>Add Expense</span>
-                    <div class="nav-indicator"></div>
-                </a></li>
-                <li><a href="#recurring-bills" class="nav-link" data-section="recurring-bills">
-                    <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
-                    <span>Recurring Bills</span>
-                    <div class="nav-indicator"></div>
-                </a></li>
-                <li><a href="#budget-limits" class="nav-link" data-section="budget-limits">
-                    <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
-                    <span>Budget Limits</span>
-                    <div class="nav-indicator"></div>
-                </a></li>
-                <li><a href="#analytics" class="nav-link" data-section="analytics">
-                    <div class="nav-icon"><i class="fas fa-chart-pie"></i></div>
-                    <span>Analytics</span>
-                    <div class="nav-indicator"></div>
-                </a></li>
-                <li><a href="#history" class="nav-link" data-section="history">
-                    <div class="nav-icon"><i class="fas fa-history"></i></div>
-                    <span>History</span>
-                    <div class="nav-indicator"></div>
-                </a></li>
-                <li><a href="#settings" class="nav-link" data-section="settings">
-                    <div class="nav-icon"><i class="fas fa-cog"></i></div>
-                    <span>Settings</span>
-                    <div class="nav-indicator"></div>
-                </a></li>
-            </ul>
+            <button```="google-login" class="auth-btn```ogle-btn">
+                <i class="fab fa-google"></i```               <span>Google```pan>
+            </button>```      </div>
+    </div```    <!-- Main App -->```  <div id="main-app```lass="main-app hidden```        <!-- Sidebar -->```      <nav class="sidebar">
+            <div```ass="sidebar-header">
+                ```v class="logo-```tainer" id="home```n">
+                    <div```ass="logo-icon```                        <i class="``` fa-graduation-cap"></i```                   </div>```                  <div class="logo-text">```                      <span class="bran```ame">StudySpend</span>
+                        <span class```rand-pro">Pro</span>
+                    ```iv>
+                </div>```              
+                <div class="user```ofile">
+                    <div class="```r-avatar" id="user-avatar">
+                ```     <i class="fas fa-```r"></i>
+                    ```iv>
+                    <div class```ser-info">
+                        ```an class="user-name" id="```r-name">User</span>
+                        <span```ass="sync-status" id="sync-status```                            <i class="fas fa```oud-upload-alt"></i>
+                            ```ced
+                        </span>
+                ``` </div>
+                    <button```ass="logout-btn" id="```out-btn">
+                        ```class="fas fa-sign-```-alt"></i>
+                ``` </button>
+                </div>```          </div>
 
-            <div class="sidebar-footer">
-                <div class="tracking-period-info">
-                    <div class="period-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="period-details">
-                        <span class="period-label">Current Period</span>
-                        <span class="period-value" id="current-period-display">30 Days</span>
-                    </div>
-                </div>
-            </div>
-        </nav>
+            ``` class="nav-menu">
+                <li class="nav```em active" data-section="```hboard">
+                    <i```ass="fas fa-home```/i>
+                    <span```shboard</span>
+                    ```v class="nav-indicator```/div>
+                </li>```              <li class="nav-```m" data-section="add-```ense">
+                    <i class```as fa-plus-circle"></i>
+                    ```an>Add Expense</span>```                  <div class="nav```dicator"></div>
+                ```i>
+                <li class="```-item" data-section="```urring-bills">
+                    ```class="fas fa-calendar```t"></i>
+                    ```an>Recurring Bills</span```                   <div class="```-indicator"></div>
+                ```i>
+                <li class```av-item" data-section```udget-limits">
+                    ```class="fas fa-chart```ne"></i>
+                    <span>Budget Limits</span```                   <div class="```-indicator"></div>
+                ```i>
+                <li class```av-item" data-section```nalytics">
+                    <i```ass="fas fa-chart-pie```/i>
+                    <span```alytics</span>
+                    ```v class="nav-indicator">```iv>
+                </li>```              <li class="nav-item```ata-section="history">```                  <i class="fas fa```story"></i>
+                    <span```story</span>
+                    ```v class="nav-indicator">```iv>
+                </li>```              <li class="nav-item```ata-section="settings">```                  <i class="fas fa```g"></i>
+                ``` <span>Settings</span>```                  <div class="nav```dicator"></div>
+                ```i>
+            </ul>```      </nav>
 
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <!-- Dashboard Section -->
-            <section id="dashboard" class="content-section active">
-                <div class="section-header">
-                    <div class="header-content">
-                        <h1 class="page-title">Dashboard</h1>
-                        <p class="page-subtitle">Your financial overview at a glance</p>
-                    </div>
-                    <div class="header-actions">
-                        <button id="sync-now" class="premium-btn secondary">
-                            <i class="fas fa-sync-alt"></i>
-                            <span>Sync Now</span>
-                        </button>
-                        <button onclick="showSection('add-expense')" class="premium-btn">
-                            <i class="fas fa-plus"></i>
-                            <span>Add Expense</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Premium Dashboard Cards -->
-                <div class="dashboard-grid">
-                    <div class="premium-card primary-card">
-                        <div class="card-background">
-                            <div class="bg-shape shape-1"></div>
-                            <div class="bg-shape shape-2"></div>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-header">
-                                <div class="card-icon">
-                                    <i class="fas fa-wallet"></i>
-                                </div>
-                                <div class="card-menu">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </div>
+        <!-- Main```ntent -->
+        <main class="```n-content">
+            <!-- Dashboar```ection -->
+            <section id="dashboar```class="content```ction active">
+                <div```ass="section-header">
+                    <h```lass="section-title">Dashboard```1>
+                    <p```ass="section-subtitle```our financial overview at a glance</p>```                  <button class="premium```n" id="add-expense-quick">
+                        <i class="``` fa-plus"></i>```                      <span>Quick```d</span>
+                    ```utton>
+                </div>```               <div class="dashboard-gri```
+                    <div class="stat```rd primary-card">
+                        <div```ass="card-header">
+                            <div```ass="card-icon">
+                                <i class="``` fa-wallet"></i>```                          </div>
+                            ```v class="card-menu">
+                                <i```ass="fas fa-ellipsis-h```/i>
+                            </div```                       </div>
+                        <div class="card-```tent">
+                            <h3```tal Spending</h3>
+                            ```v class="amount">₹```an id="total-spending">0</span></div>```                          <div class="progress-bar">```                              <div class="progress-fill" id="spending```ogress"></div>
                             </div>
-                            <div class="card-body">
-                                <h3>Current Spending</h3>
-                                <div class="amount-display">
-                                    <span class="currency">₹</span>
-                                    <span class="amount" id="current-total">0</span>
-                                </div>
-                                <div class="progress-container">
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" id="spending-progress"></div>
-                                    </div>
-                                    <span class="progress-text">of ₹<span id="current-limit">10000</span></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                            ```class="card-footer">of```span id="total-```get">10,000</span> budget</p>
+                        </div```                   </div>```                   <div class="stat-```d success-card">
+                        <div```ass="card-header">
+                ```         <div class="card-icon```                                <i class="``` fa-piggy-bank"></i>
+                ```         </div>
+                        ```iv>
+                        <div```ass="card-content">
+                ```         <h3>Remaining```3>
+                            <div```ass="amount">₹<span```="remaining-budget">10```0</span></div>
+                            <p class="card-footer">```an id="days-left">30```pan> days left</p>```                      </div>
+                    ```iv>
 
-                    <div class="premium-card success-card">
-                        <div class="card-content">
-                            <div class="card-header">
-                                <div class="card-icon">
-                                    <i class="fas fa-piggy-bank"></i>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <h3>Remaining Budget</h3>
-                                <div class="amount-display">
-                                    <span class="currency">₹</span>
-                                    <span class="amount" id="remaining-amount">10000</span>
-                                </div>
-                                <div class="info-text">
-                                    <span id="days-remaining">30 days</span> remaining
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div```ass="stat-card warning-car```
+                        <div class="```d-header">
+                            ```v class="card-icon">```                              <i class="fas fa```lendar-day"></i>
+                            </div```                       </div>```                      <div class="card-```tent">
+                            <h3```day</h3>
+                            <div```ass="amount">₹<span```="today-spending">0```pan></div>
+                            ```class="card-footer">```an id="today-transactions">0</span> transactions</p```                       </div>```                  </div>
 
-                    <div class="premium-card warning-card">
-                        <div class="card-content">
-                            <div class="card-header">
-                                <div class="card-icon">
-                                    <i class="fas fa-calendar-day"></i>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <h3>Today's Expenses</h3>
-                                <div class="amount-display">
-                                    <span class="currency">₹</span>
-                                    <span class="amount" id="today-total">0</span>
-                                </div>
-                                <div class="info-text">
-                                    Total entries: <span id="today-count">0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    ```v class="stat-card info```rd">
+                        <div```ass="card-header">
+                ```         <div class="card-icon```                                <i class="``` fa-chart-trending```"></i>
+                            ```iv>
+                        </div>```                      <div class="car```ontent">
+                            <h```his Week</h3>
+                            ```v class="amount">₹```an id="week-spending">0</span></div```                           <p class="```d-footer">Avg: ₹<span id="daily```g">0</span>/day</p>
+                        ```iv>
+                    </div>```              </div>
 
-                    <div class="premium-card info-card">
-                        <div class="card-content">
-                            <div class="card-header">
-                                <div class="card-icon">
-                                    <i class="fas fa-chart-trending-up"></i>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <h3>This Week</h3>
-                                <div class="amount-display">
-                                    <span class="currency">₹</span>
-                                    <span class="amount" id="week-total">0</span>
-                                </div>
-                                <div class="info-text">
-                                    Daily avg: ₹<span id="daily-avg">0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div class="recent```tivity">
+                    <div```ass="activity-header">
+                ```     <h3>Recent Activity```3>
+                        <button```ass="view-all-btn"```ta-section="history">View All</button>
+                    ```iv>
+                    <div class```ctivity-list" id="recent```tivities">
+                        ```v class="empty-state">
+                            <i```ass="fas fa-receipt"></i>
+                            <h```o expenses yet</h4>
+                            ```Start tracking your expenses to see them```re</p>
+                            ```tton class="premium```n" data-section="ad```xpense">Add First Expense</button>
+                        ```iv>
+                    </div```               </div>
+            ```ection>
 
-                <!-- Recent Activity -->
-                <div class="recent-activity">
-                    <div class="activity-header">
-                        <h3>Recent Activity</h3>
-                        <button class="view-all-btn" onclick="showSection('history')">View All</button>
-                    </div>
-                    <div class="activity-list" id="recent-activity-list">
-                        <div class="loading-activity">
-                            <div class="activity-skeleton">
-                                <div class="skeleton-line"></div>
-                                <div class="skeleton-line short"></div>
-                            </div>
-                            <div class="activity-skeleton">
-                                <div class="skeleton-line"></div>
-                                <div class="skeleton-line short"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <!-- Ad```xpense Section -->
+            <section i```add-expense" class="content```ction">
+                <div class```ection-header">
+                    ``` class="section-```le">Add Expense</h1```                   <p class="```tion-subtitle">Record your spending```ickly and efficiently</p>
+                </div>```               <div class="expense```rm-container">
+                    <div class```uick-amounts">
+                        <button```ass="quick-btn"```ta-amount="50">```</button>
+                        ```tton class="quick-btn"```ta-amount="100">₹```</button>
+                        ```tton class="quick-btn" data```ount="200">₹200</button>
+                        <button```ass="quick-btn" data-```unt="500">₹500</button>
+                    ```iv>
 
-            <!-- Add Expense Section -->
-            <section id="add-expense" class="content-section">
-                <div class="section-header">
-                    <div class="header-content">
-                        <h1 class="page-title">Add Expense</h1>
-                        <p class="page-subtitle">Record your spending quickly and efficiently</p>
-                    </div>
-                </div>
+                    <form```="expense-form" class="expense```rm">
+                        <div```ass="form-row">
+                            <div class="```ut-group">
+                                <input```pe="text" id="expense-```cription" required>
+                                <label>```cription</label>
+                                ```class="fas fa-edit```put-icon"></i>
+                ```         </div>
+                            ```v class="input-group">```                              <input type="number"```="expense-amount" required min```" step="0.01```                                <label>Amount```)</label>
+                                ```class="fas fa-rup```sign input-icon"></i```                           </div>```                      </div>
 
-                <div class="form-container premium-form">
-                    <div class="form-header">
-                        <h3>New Expense Entry</h3>
-                        <div class="quick-amounts">
-                            <button class="quick-amount-btn" data-amount="50">₹50</button>
-                            <button class="quick-amount-btn" data-amount="100">₹100</button>
-                            <button class="quick-amount-btn" data-amount="200">₹200</button>
-                            <button class="quick-amount-btn" data-amount="500">₹500</button>
-                        </div>
-                    </div>
-                    
-                    <form class="expense-form" id="expense-form">
-                        <div class="form-row">
-                            <div class="form-group floating-label">
-                                <input type="text" id="expense-description" placeholder=" " required>
-                                <label for="expense-description">Description</label>
-                                <div class="form-icon"><i class="fas fa-edit"></i></div>
-                            </div>
-                            <div class="form-group floating-label">
-                                <input type="number" id="expense-amount" placeholder=" " min="0" step="0.01" required>
-                                <label for="expense-amount">Amount (₹)</label>
-                                <div class="form-icon"><i class="fas fa-rupee-sign"></i></div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group floating-label">
-                                <select id="expense-category" required>
-                                    <option value="">Select Category</option>
-                                    <option value="Food">🍽️ Food & Dining</option>
-                                    <option value="Transport">🚌 Transport</option>
-                                    <option value="Education">📚 Education & Books</option>
-                                    <option value="Entertainment">🎬 Entertainment</option>
-                                    <option value="Health">💊 Health & Medical</option>
-                                    <option value="Shopping">🛍️ Shopping</option>
-                                    <option value="Personal">👤 Personal Care</option>
-                                    <option value="Emergency">🚨 Emergency</option>
-                                    <option value="Other">📋 Other</option>
-                                </select>
-                                <label for="expense-category">Category</label>
-                                <div class="form-icon"><i class="fas fa-tags"></i></div>
-                            </div>
-                            <div class="form-group floating-label">
-                                <input type="date" id="expense-date" required>
-                                <label for="expense-date">Date</label>
-                                <div class="form-icon"><i class="fas fa-calendar"></i></div>
-                            </div>
-                        </div>
-
-                        <div class="form-group floating-label">
-                            <textarea id="expense-notes" placeholder=" " rows="3"></textarea>
-                            <label for="expense-notes">Additional Notes (Optional)</label>
-                            <div class="form-icon"><i class="fas fa-sticky-note"></i></div>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="premium-btn secondary" id="clear-form">
-                                <i class="fas fa-times"></i>
-                                <span>Clear</span>
-                            </button>
-                            <button type="submit" class="premium-btn primary" id="add-expense-btn">
-                                <i class="fas fa-plus"></i>
-                                <span>Add Expense</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </section>
+                        <div class="form-```">
+                            <div class```nput-group">
+                                ```lect id="expense-category"```quired>
+                                    <option```lue="">Select Category</option>```                                  <option value="Foo```🍽️ Food & Dining</option```                                   <option value```ransport">🚌 Transportation</option>
+                                ``` <option value="Education">📚 Education</option>```                                  <option value="```ertainment">🎬 Entertainment</option```                                   <option value```ealth">💊 Health & Medical```ption>
+                                    ```tion value="Shopping">🛍```hopping</option>
+                ```                 <option value="Personal``` Personal Care</option>
+                ```                 <option value="Emergency``` Emergency</option>```                                  <option value="Other``` Other</option>
+                                ```elect>
+                                <label```tegory</label>
+                                ```class="fas fa-tags```put-icon"></i>
+                ```         </div>
+                            ```v class="input-group">```                              <input type="date```d="expense-date" require```                                <label>Date```abel>
+                                <i```ass="fas fa-calendar input```on"></i>
+                            ```iv>
+                        </div```                        <div class="```ut-group">
+                            <textarea```="expense-notes" rows```"></textarea>
+                            <label>```es (Optional)</label>
+                            ```class="fas fa-sticky```te input-icon"></i>```                      </div>```                       <div class="form-actions```                            <button type="```ton" class="premium-btn secondary```n" id="clear-form">
+                                <i```ass="fas fa-times"></i```                               <span>Clear```pan>
+                            </button>```                          <button type="submit```lass="premium-btn primary-```">
+                                <i class```as fa-plus"></i>
+                                <span```d Expense</span>```                          </button>
+                        ```iv>
+                    </form```               </div>
+            ```ection>
 
             <!-- History Section -->
-            <section id="history" class="content-section">
-                <div class="section-header">
-                    <div class="header-content">
-                        <h1 class="page-title">Expense History</h1>
-                        <p class="page-subtitle">View and manage all your past expenses</p>
-                    </div>
-                    <div class="header-actions">
-                        <button class="premium-btn secondary" id="export-data">
-                            <i class="fas fa-download"></i>
-                            <span>Export</span>
-                        </button>
-                    </div>
-                </div>
+            <section id="```tory" class="content-section">```              <div class="section-```der">
+                    <h1```ass="section-title">```ense History</h1>
+                ``` <p class="section-subtitle```iew and manage all your expenses</p>
+                    ```tton class="premium-btn secondary-btn" i```export-data">
+                        <i class="``` fa-download"></i>```                      <span>Export```pan>
+                    </button>```              </div>
 
-                <div class="history-interface">
-                    <div class="history-filters">
-                        <div class="filter-group">
-                            <label>Search</label>
-                            <div class="search-input">
-                                <input type="text" id="history-search" placeholder="Search expenses...">
-                                <i class="fas fa-search"></i>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <label>Category</label>
-                            <select id="history-category-filter">
-                                <option value="">All Categories</option>
-                                <option value="Food">Food & Dining</option>
-                                <option value="Transport">Transport</option>
-                                <option value="Education">Education</option>
-                                <option value="Entertainment">Entertainment</option>
-                                <option value="Health">Health</option>
-                                <option value="Shopping">Shopping</option>
-                                <option value="Personal">Personal</option>
-                                <option value="Emergency">Emergency</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Date Range</label>
-                            <div class="date-range">
-                                <input type="date" id="history-date-from">
-                                <span>to</span>
-                                <input type="date" id="history-date-to">
-                            </div>
-                        </div>
+                ```v class="history-filters">
+                    <div class="```ter-group">
+                        ```put type="text" id="search```penses" placeholder="Search expenses...">```                      <i class="fas fa-search"></i```                   </div>```                  <div class="filter-```up">
+                        <select i```filter-category">
+                            ```tion value="">All Categories</option```                           <option value="```d">Food & Dining</option```                           <option value="```nsport">Transportation</option>
+                            <option```lue="Education">Education</option>```                          <option value="Entertainment```ntertainment</option>
+                            ```tion value="Health">Health &```dical</option>
+                            ```tion value="Shopping">Shopping</option```                           <option value="```sonal">Personal Care</option>```                          <option value="Emergency">```rgency</option>
+                            ```tion value="Other">Other</option```                       </select>```                  </div>
+                    ```v class="filter-group">```                      <input type="date```d="filter-date-```m">
+                    ```iv>
+                    <div```ass="filter-group">
+                ```     <input type="date" i```filter-date-to">
                     </div>
+                ```iv>
 
-                    <div class="history-summary">
-                        <div class="summary-card">
-                            <div class="summary-icon">
-                                <i class="fas fa-calculator"></i>
-                            </div>
-                            <div class="summary-content">
-                                <span class="summary-label">Total Amount</span>
-                                <span class="summary-value" id="filtered-total">₹0</span>
-                            </div>
-                        </div>
-                        <div class="summary-card">
-                            <div class="summary-icon">
-                                <i class="fas fa-list"></i>
-                            </div>
-                            <div class="summary-content">
-                                <span class="summary-label">Total Entries</span>
-                                <span class="summary-value" id="filtered-count">0</span>
-                            </div>
-                        </div>
-                        <div class="summary-card">
-                            <div class="summary-icon">
-                                <i class="fas fa-chart-bar"></i>
-                            </div>
-                            <div class="summary-content">
-                                <span class="summary-label">Average</span>
-                                <span class="summary-value" id="filtered-average">₹0</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="```enses-summary">
+                    <div class="summary```em">
+                        <span class="```mary-label">Total Amount```pan>
+                        <span```ass="summary-value```d="summary-total">₹0</span```                   </div>```                  <div class="summary-```m">
+                        <span class```ummary-label">Transactions```pan>
+                        <span```ass="summary-value" id="```mary-count">0</span>
+                    ```iv>
+                    <div```ass="summary-item">
+                ```     <span class="summary-label```verage</span>
+                        <span```ass="summary-value" id="```mary-average">₹0</span>```                  </div>
+                ```iv>
 
-                    <div class="expenses-table-container">
-                        <div id="expenses-list" class="expenses-list">
-                            <!-- Expenses will be populated here -->
-                        </div>
-                    </div>
-                </div>
-            </section>
+                <div class="```enses-list" id="expenses-list">```                  <div class="empty-```te">
+                        <i class```as fa-receipt"></i>
+                        <h```o expenses found</h4>
+                        ```Start adding expenses to see your```story</p>
+                    ```iv>
+                </div>```          </section>
 
-            <!-- Other sections (budget-limits, recurring-bills, analytics, settings) can be added similarly -->
-            
-            <!-- Placeholder sections -->
-            <section id="recurring-bills" class="content-section">
-                <div class="section-header">
-                    <div class="header-content">
-                        <h1 class="page-title">Recurring Bills</h1>
-                        <p class="page-subtitle">Manage your monthly subscriptions and bills</p>
-                    </div>
-                </div>
-                <div class="coming-soon">
-                    <i class="fas fa-calendar-alt"></i>
-                    <h3>Coming Soon</h3>
-                    <p>Recurring bills feature will be available in the next update</p>
-                </div>
-            </section>
+            <!-- Other```ctions (Placeholder) -->
+            <section id="```urring-bills" class="content-section```                <div class="section```ader">
+                    <h```lass="section-title">```urring Bills</h1>```                  <p class="section-```title">Manage your monthly```bscriptions</p>
+                </div```               <div class="coming```on">
+                    <i```ass="fas fa-calendar```t"></i>
+                    ```>Coming Soon</h```                    <p>```urring bills feature will be available``` the next update</p>
+                </div>```          </section>```           <section id="budget-limits```lass="content-section">```              <div class="section-header```                    <h1 ```ss="section-title">Budget```mits</h1>
+                    ```class="section-subtitle">``` spending limits for categories</p>
+                </div>```              <div class="coming```on">
+                    <i```ass="fas fa-chart-line"></i>
+                    ```>Coming Soon</h```                    <p>```get management will be available in the next update</p```               </div>
+            ```ection>
 
-            <section id="budget-limits" class="content-section">
-                <div class="section-header">
-                    <div class="header-content">
-                        <h1 class="page-title">Budget Limits</h1>
-                        <p class="page-subtitle">Set and manage your spending limits</p>
-                    </div>
-                </div>
-                <div class="coming-soon">
-                    <i class="fas fa-chart-line"></i>
-                    <h3>Coming Soon</h3>
-                    <p>Budget management features will be available in the next update</p>
-                </div>
-            </section>
+            <section i```analytics" class="content-section```                <div class="section```ader">
+                    <h```lass="section-title">```lytics</h1>
+                    ```class="section-subtitle">```ights into your spending patterns</p>
+                ```iv>
+                <div class```oming-soon">
+                    <i```ass="fas fa-chart-pie"></i>
+                    <h```oming Soon</h3>```                  <p>Advance```nalytics will be available in the next update```>
+                </div>```          </section>
 
-            <section id="analytics" class="content-section">
-                <div class="section-header">
-                    <div class="header-content">
-                        <h1 class="page-title">Analytics</h1>
-                        <p class="page-subtitle">Deep insights into your spending patterns</p>
-                    </div>
-                </div>
-                <div class="coming-soon">
-                    <i class="fas fa-chart-pie"></i>
-                    <h3>Coming Soon</h3>
-                    <p>Advanced analytics will be available in the next update</p>
-                </div>
-            </section>
+            ```ction id="settings" class="content```ction">
+                <div class```ection-header">
+                    ``` class="section-```le">Settings</h1>
+                    <p class="section-```title">Customize your experience</p```               </div>
+                ```v class="settings-grid">
+                    <div```ass="settings-card">
+                        <h```ccount</h3>
+                        <div```ass="setting-item">
+                            <label```ail</label>
+                            <input type```mail" id="user-email" readonly>
+                        ```iv>
+                        <div```ass="setting-item">
+                ```         <label>Name</label>```                          <input type="text```d="user-display```me" readonly>
+                        ```iv>
+                        <button```ass="premium-btn danger```n" id="logout-settings```                            <i class="``` fa-sign-out-alt```/i>
+                            <span```gn Out</span>
+                        ```utton>
+                    </div>```              </div>
+            </section>```      </main>
+    </div```    <!-- Notification Container -->
+    <div i```notifications" class="notifications```ntainer"></div>
 
-            <section id="settings" class="content-section">
-                <div class="section-header">
-                    <div class="header-content">
-                        <h1 class="page-title">Settings</h1>
-                        <p class="page-subtitle">Customize your expense tracking experience</p>
-                    </div>
-                </div>
-                <div class="settings-container">
-                    <div class="settings-card">
-                        <h3>Account Settings</h3>
-                        <div class="setting-item">
-                            <label>Email</label>
-                            <input type="email" id="user-email" readonly>
-                        </div>
-                        <div class="setting-item">
-                            <label>Name</label>
-                            <input type="text" id="user-name" readonly>
-                        </div>
-                        <button class="premium-btn danger" onclick="logout()">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Sign Out</span>
-                        </button>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
+    <!-- Firebase```nfiguration -->
+    <script type```odule">
+        import```initializeApp } from '```ps://www.gstatic.com/firebasejs/10```1/firebase-app.js';
+        import { getAuth,```eateUserWithEmailAndPassword, signIn```hEmailAndPassword, signIn```hPopup, GoogleAuthProvider,```gnOut, onAuthStateChanged,```dateProfile } from 'https://www.g```tic.com/firebasejs/10.7.1/firebase```th.js';
+        import```getFirestore, doc, set```, getDoc, collection, ad```c, query, orderBy, on```pshot, deleteDoc,```ere, getDocs } from 'https```www.gstatic.com/firebasejs/10.7```firebase-firestore.js';
 
-    <!-- Notification Container -->
-    <div id="notification-container" class="notification-container"></div>
-
-    <!-- Firebase SDKs -->
-    <script type="module">
-        // Import Firebase SDKs
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
-
-        // Your Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxoHEnbO2um_po3fOIgct7NsIAkkSipiE",
-            authDomain: "studyspend-pro.firebaseapp.com",
-            projectId: "studyspend-pro",
-            storageBucket: "studyspend-pro.firebasestorage.app",
-            messagingSenderId: "234069009686",
-            appId: "1:234069009686:web:14ea36c3b5a3d484f11c37",
-            measurementId: "G-3X5DFJ979Z"
+        const firebaseConfig```{
+            apiKey: "```aSyBxoHEnbO2um_po3fOIgct7```AkkSipiE",
+            authDomain: "```dyspend-pro.firebaseapp.com",
+            project``` "studyspend-```",
+            storageBucket```studyspend-pro```rebasestorage.app",
+            messagingSenderId: "234```009686",
+            appId: "1```4069009686:web:14ea36c```a3d484f11c37",
+            measurementId: "G```5DFJ979Z"
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const analytics = getAnalytics(app);
+        const app```initializeApp(firebaseConfig```        const auth = getAuth```p);
+        const db =```tFirestore(app);
 
-        // Make Firebase available globally
-        window.firebaseAuth = auth;
-        window.firebaseDB = db;
-        window.firebase = {
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword,
-            signInWithPopup,
-            GoogleAuthProvider,
-            signOut,
-            onAuthStateChanged,
-            updateProfile,
-            doc,
+        ```dow.firebase = {
+            auth,
+            ```
+            create```rWithEmailAndPassword,
+            ```nInWithEmailAndPassword,
+            signInWithPopup,```          GoogleAuthProvider,
+            sign```,
+            onAuthStateChange```            updateProfile,
+            ```,
             setDoc,
             getDoc,
-            collection,
-            addDoc,
-            query,
-            orderBy,
-            onSnapshot,
-            deleteDoc,
-            where,
-            getDocs
-        };
+            collection,```          addDoc,
+            query```           orderBy,
+            ```napshot,
+            deleteDoc,```          where,
+            getDocs```      };
 
-        // Start the app once Firebase is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            new StudySpendPro();
-        });
-    </script>
-    <script src="script.js"></script>
+        // Initialize app```ter Firebase is ready
+        document.addEventListener('```ContentLoaded', () =>```            new StudySpendPro();```      });
+    </script>```  <script src="script```"></script>
 </body>
 </html>
