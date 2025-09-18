@@ -32,102 +32,104 @@
             </div>
         </div>
     </div>
-    <!-- Enhanced Login Screen -->
-<div id="auth-screen" class="auth-screen hidden">
-    <div class="auth-background">
-        <div class="auth-particles">
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-        </div>
-    </div>
-    
-    <div class="auth-content">
-        <div class="auth-container">
-            <div class="auth-header">
-                <div class="auth-logo">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <h1>StudySpend Pro</h1>
-                <p>Smart Expense Management for Students</p>
+
+    <!-- Enhanced Auth Screen - Fixed Responsive Design -->
+    <div id="auth-screen" class="auth-screen hidden">
+        <div class="auth-background">
+            <div class="auth-particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
             </div>
-
-            <div class="auth-card">
-                <div class="auth-tabs">
-                    <button class="tab-btn active" data-tab="login">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span>Login</span>
-                    </button>
-                    <button class="tab-btn" data-tab="register">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Sign Up</span>
-                    </button>
+        </div>
+        
+        <div class="auth-content">
+            <div class="auth-container">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h1>StudySpend Pro</h1>
+                    <p>Smart Expense Management for Students</p>
                 </div>
 
-                <div class="auth-forms">
-                    <!-- Login Form -->
-                    <form id="login-form" class="auth-form active">
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <input type="email" id="login-email" required autocomplete="email">
-                                <label for="login-email">Email Address</label>
-                                <i class="fas fa-envelope input-icon"></i>
-                            </div>
-                            <div class="input-group">
-                                <input type="password" id="login-password" required autocomplete="current-password">
-                                <label for="login-password">Password</label>
-                                <i class="fas fa-lock input-icon"></i>
-                            </div>
-                        </div>
-                        <button type="submit" class="auth-btn primary-btn" id="login-btn">
+                <div class="auth-card">
+                    <div class="auth-tabs">
+                        <button class="tab-btn active" data-tab="login">
+                            <i class="fas fa-sign-in-alt"></i>
                             <span>Login</span>
-                            <i class="fas fa-arrow-right"></i>
                         </button>
-                    </form>
-
-                    <!-- Register Form -->
-                    <form id="register-form" class="auth-form">
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <input type="text" id="register-name" required autocomplete="name">
-                                <label for="register-name">Full Name</label>
-                                <i class="fas fa-user input-icon"></i>
-                            </div>
-                            <div class="input-group">
-                                <input type="email" id="register-email" required autocomplete="email">
-                                <label for="register-email">Email Address</label>
-                                <i class="fas fa-envelope input-icon"></i>
-                            </div>
-                            <div class="input-group">
-                                <input type="password" id="register-password" required minlength="6" autocomplete="new-password">
-                                <label for="register-password">Password</label>
-                                <i class="fas fa-lock input-icon"></i>
-                            </div>
-                            <div class="input-group">
-                                <input type="password" id="register-confirm" required minlength="6" autocomplete="new-password">
-                                <label for="register-confirm">Confirm Password</label>
-                                <i class="fas fa-lock input-icon"></i>
-                            </div>
-                        </div>
-                        <button type="submit" class="auth-btn primary-btn" id="register-btn">
-                            <span>Create Account</span>
+                        <button class="tab-btn" data-tab="register">
                             <i class="fas fa-user-plus"></i>
+                            <span>Sign Up</span>
                         </button>
-                    </form>
-                </div>
+                    </div>
 
-                <div class="auth-divider">
-                    <span>or continue with</span>
-                </div>
+                    <div class="auth-forms">
+                        <!-- Login Form -->
+                        <form id="login-form" class="auth-form active">
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <input type="email" id="login-email" required autocomplete="email">
+                                    <label for="login-email">Email Address</label>
+                                    <i class="fas fa-envelope input-icon"></i>
+                                </div>
+                                <div class="input-group">
+                                    <input type="password" id="login-password" required autocomplete="current-password">
+                                    <label for="login-password">Password</label>
+                                    <i class="fas fa-lock input-icon"></i>
+                                </div>
+                            </div>
+                            <button type="submit" class="auth-btn primary-btn" id="login-btn">
+                                <span>Login</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </form>
 
-                <button id="google-login" class="auth-btn google-btn">
-                    <i class="fab fa-google"></i>
-                    <span>Google</span>
-                </button>
+                        <!-- Register Form -->
+                        <form id="register-form" class="auth-form">
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <input type="text" id="register-name" required autocomplete="name">
+                                    <label for="register-name">Full Name</label>
+                                    <i class="fas fa-user input-icon"></i>
+                                </div>
+                                <div class="input-group">
+                                    <input type="email" id="register-email" required autocomplete="email">
+                                    <label for="register-email">Email Address</label>
+                                    <i class="fas fa-envelope input-icon"></i>
+                                </div>
+                                <div class="input-group">
+                                    <input type="password" id="register-password" required minlength="6" autocomplete="new-password">
+                                    <label for="register-password">Password</label>
+                                    <i class="fas fa-lock input-icon"></i>
+                                </div>
+                                <div class="input-group">
+                                    <input type="password" id="register-confirm" required minlength="6" autocomplete="new-password">
+                                    <label for="register-confirm">Confirm Password</label>
+                                    <i class="fas fa-lock input-icon"></i>
+                                </div>
+                            </div>
+                            <button type="submit" class="auth-btn primary-btn" id="register-btn">
+                                <span>Create Account</span>
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="auth-divider">
+                        <span>or continue with</span>
+                    </div>
+
+                    <button id="google-login" class="auth-btn google-btn">
+                        <i class="fab fa-google"></i>
+                        <span>Google</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
     <!-- Main App -->
     <div id="main-app" class="main-app hidden">
         <!-- Sidebar -->
@@ -199,14 +201,9 @@
                     <span>Add Expense</span>
                     <div class="nav-indicator"></div>
                 </li>
-                <li class="nav-item" data-section="recurring-bills">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Recurring Bills</span>
-                    <div class="nav-indicator"></div>
-                </li>
                 <li class="nav-item" data-section="budget-limits">
                     <i class="fas fa-chart-line"></i>
-                    <span>Budget Limits</span>
+                    <span>Budget Management</span>
                     <div class="nav-indicator"></div>
                 </li>
                 <li class="nav-item" data-section="analytics">
@@ -386,28 +383,7 @@
                 </div>
             </section>
 
-            <!-- Recurring Bills Section -->
-            <section id="recurring-bills" class="content-section">
-                <div class="section-header">
-                    <h1 class="section-title">Recurring Bills</h1>
-                    <p class="section-subtitle">Manage your monthly subscriptions and bills</p>
-                    <button class="premium-btn" id="add-bill-btn">
-                        <i class="fas fa-plus"></i>
-                        <span>Add Bill</span>
-                    </button>
-                </div>
-
-                <div class="bills-container" id="bills-container">
-                    <div class="empty-state">
-                        <i class="fas fa-calendar-alt"></i>
-                        <h4>No Recurring Bills</h4>
-                        <p>Add your monthly subscriptions and bills</p>
-                        <button class="premium-btn" id="add-first-bill">Add First Bill</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Budget Limits Section -->
+            <!-- Budget Management Section -->
             <section id="budget-limits" class="content-section">
                 <div class="section-header">
                     <h1 class="section-title">Budget Management</h1>
@@ -445,21 +421,6 @@
                             <div class="form-actions">
                                 <button class="premium-btn secondary-btn" id="cancel-budget-edit">Cancel</button>
                                 <button class="premium-btn primary-btn" id="save-budget">Save Budget</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="category-budgets">
-                        <div class="card-header">
-                            <h3>Category Limits</h3>
-                            <button class="premium-btn secondary-btn" id="add-category-budget">
-                                <i class="fas fa-plus"></i>
-                                <span>Add Limit</span>
-                            </button>
-                        </div>
-                        <div class="category-budget-list" id="category-budget-list">
-                            <div class="empty-state">
-                                <p>No category limits set</p>
                             </div>
                         </div>
                     </div>
@@ -502,33 +463,6 @@
                             <canvas id="categoryChart"></canvas>
                         </div>
                     </div>
-
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Daily Breakdown</h3>
-                            <span class="chart-info" id="daily-info">This month</span>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="dailyChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Monthly Comparison</h3>
-                            <span class="chart-info" id="comparison-info">Last 6 months</span>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="comparisonChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="insights-section">
-                    <h3>Smart Insights</h3>
-                    <div class="insights-grid" id="insights-container">
-                        <!-- Insights will be populated here -->
-                    </div>
                 </div>
             </section>
 
@@ -568,12 +502,6 @@
                                 <option value="Emergency">Emergency</option>
                                 <option value="Other">Other</option>
                             </select>
-                        </div>
-                        <div class="filter-group">
-                            <input type="date" id="filter-date-from">
-                        </div>
-                        <div class="filter-group">
-                            <input type="date" id="filter-date-to">
                         </div>
                     </div>
 
@@ -633,36 +561,6 @@
                             <button class="premium-btn danger-btn" id="logout-settings">
                                 <i class="fas fa-sign-out-alt"></i>
                                 <span>Sign Out</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="settings-card">
-                        <div class="card-header">
-                            <h3>Preferences</h3>
-                        </div>
-                        <div class="card-content">
-                            <div class="input-group">
-                                <select id="currency-setting">
-                                    <option value="INR">₹ Indian Rupee</option>
-                                    <option value="USD">$ US Dollar</option>
-                                    <option value="EUR">€ Euro</option>
-                                </select>
-                                <label for="currency-setting">Currency</label>
-                                <i class="fas fa-coins input-icon"></i>
-                            </div>
-                            <div class="input-group">
-                                <select id="theme-setting">
-                                    <option value="default">Default</option>
-                                    <option value="dark">Dark Mode</option>
-                                    <option value="ocean">Ocean Blue</option>
-                                </select>
-                                <label for="theme-setting">Theme</label>
-                                <i class="fas fa-palette input-icon"></i>
-                            </div>
-                            <button class="premium-btn primary-btn" id="save-preferences">
-                                <i class="fas fa-save"></i>
-                                <span>Save Preferences</span>
                             </button>
                         </div>
                     </div>
@@ -726,76 +624,31 @@
         </div>
     </div>
 
-    <!-- Add Bill Modal -->
-    <div id="bill-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Recurring Bill</h3>
-                <button class="close-btn" id="close-bill-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="bill-form">
-                    <div class="input-group">
-                        <input type="text" id="bill-name" required>
-                        <label for="bill-name">Bill Name</label>
-                    </div>
-                    <div class="input-group">
-                        <input type="number" id="bill-amount" required min="0" step="0.01">
-                        <label for="bill-amount">Amount (₹)</label>
-                    </div>
-                    <div class="input-group">
-                        <select id="bill-frequency" required>
-                            <option value="">Select Frequency</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                            <option value="quarterly">Quarterly</option>
-                            <option value="yearly">Yearly</option>
-                        </select>
-                        <label for="bill-frequency">Frequency</label>
-                    </div>
-                    <div class="input-group">
-                        <input type="date" id="bill-next-due" required>
-                        <label for="bill-next-due">Next Due Date</label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="premium-btn secondary-btn" id="cancel-bill">Cancel</button>
-                <button class="premium-btn primary-btn" id="save-bill">Add Bill</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Notification Container -->
     <div id="notifications" class="notifications-container"></div>
 
-    <!-- Firebase Config -->
-  <!-- Firebase v8 Scripts - Place BEFORE your script.js -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- Firebase v8 Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-<script>
-  // Initialize Firebase v8
-  const firebaseConfig = {
-    apiKey: "AIzaSyBxoHEnbO2um_po3fOIgct7NsIAkkSipiE",
-    authDomain: "studyspend-pro.firebaseapp.com",
-    projectId: "studyspend-pro",
-    storageBucket: "studyspend-pro.firebasestorage.app",
-    messagingSenderId: "234069009686",
-    appId: "1:234069009686:web:14ea36c3b5a3d484f11c37",
-    measurementId: "G-3X5DFJ979Z"
-  };
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxoHEnbO2um_po3fOIgct7NsIAkkSipiE",
+            authDomain: "studyspend-pro.firebaseapp.com",
+            projectId: "studyspend-pro",
+            storageBucket: "studyspend-pro.firebasestorage.app",
+            messagingSenderId: "234069009686",
+            appId: "1:234069009686:web:14ea36c3b5a3d484f11c37",
+            measurementId: "G-3X5DFJ979Z"
+        };
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  
-  console.log('✅ Firebase initialized successfully');
-</script>
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        console.log('✅ Firebase v8 initialized successfully');
+    </script>
 
-<!-- Your script.js should come AFTER Firebase -->
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
